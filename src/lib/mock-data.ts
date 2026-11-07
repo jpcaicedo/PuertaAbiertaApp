@@ -56,6 +56,9 @@ export const community = {
 
 export const currentResident = {
   firstName: "Sandra",
+  fullName: "Sandra Gómez",
+  tower: "E",
+  apartment: "204",
   unitLabel: "Torre E · Apto 204",
   avatar: "/images/avatar-sandra.png",
 };

@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, Heart, Lock, ShieldCheck } from "lucide-react";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BottomSheet,
@@ -16,12 +16,7 @@ import { RuleCard } from "@/components/app/cards";
 import { CheckboxField } from "@/components/app/controls";
 import { IconTile } from "@/components/app/icon-tile";
 import { Screen, ScreenActions, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from "@/components/app/screen";
-
-const rules = [
-  { icon: ShieldCheck, title: "Solo vecinos verificados", description: "Todos entran con el código de su apartamento." },
-  { icon: Heart, title: "Trato respetuoso", description: "Nada de acoso, discriminación ni ventas engañosas." },
-  { icon: Eye, title: "Tú decides qué se ve", description: "Puedes ocultar tu teléfono, tu apartamento o tu perfil." },
-] as const;
+import { communityRules } from "@/lib/community";
 
 /** R5 · Normas y datos personales (484:2036) + R5b · No acepta (484:2080) */
 export default function NormasPage() {
@@ -39,7 +34,7 @@ export default function NormasPage() {
         <ScreenDescription size="sm">Lo aceptas una sola vez y aplica a todo lo que hagas en la app.</ScreenDescription>
 
         <ul className="flex w-full flex-col gap-3.5">
-          {rules.map((rule) => (
+          {communityRules.map((rule) => (
             <RuleCard key={rule.title} {...rule} />
           ))}
         </ul>

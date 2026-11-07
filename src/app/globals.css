@@ -59,6 +59,12 @@
   --pa-star: #fd9200; /* estrellas de calificación */
   --pa-toast: #172033; /* fondo del aviso flotante */
   --pa-toast-icon: #6fd39b;
+  /* Perfil y notificaciones */
+  --pa-status-success-soft: #e6f4ec;
+  --pa-status-success: #1f7a4d;
+  --pa-status-pending: #8a5a00;
+  --pa-text-muted: #8a93a3;
+  --pa-unread: #fbfcfe;
 
   /* Mapeo a las variables de shadcn/ui para que los componentes
      que se agreguen con `npx shadcn add` hereden la paleta. */
@@ -120,6 +126,11 @@
   --color-star: var(--pa-star);
   --color-toast: var(--pa-toast);
   --color-toast-icon: var(--pa-toast-icon);
+  --color-status-success-soft: var(--pa-status-success-soft);
+  --color-status-success: var(--pa-status-success);
+  --color-status-pending: var(--pa-status-pending);
+  --color-text-muted: var(--pa-text-muted);
+  --color-unread: var(--pa-unread);
 
   /* shadcn */
   --color-background: var(--background);
@@ -155,6 +166,8 @@
   --text-subtitle--line-height: 28px;
   --text-heading: 18px; /* Título de hoja · SemiBold */
   --text-heading--line-height: 24px;
+  --text-callout: 16px; /* Filas de listas y subtítulos de sección · SemiBold */
+  --text-callout--line-height: 24px;
   --text-body: 15px; /* Párrafos, inputs, títulos de tarjeta */
   --text-body--line-height: 22px;
   --text-label: 14px; /* Botones · Medium */

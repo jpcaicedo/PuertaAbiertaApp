@@ -19,7 +19,7 @@ npm run dev        # http://localhost:3000
 | 4 · Mapa | M1 – M3 (4) | ✅ |
 | 5 · Directorio | D1 – D15 (18) | ✅ |
 | 6 · Zonas comunes | Z1 – Z8 (9) | ✅ |
-| 7 · Perfil y notificaciones | P1 – P4, N1 | pendiente |
+| 7 · Perfil y notificaciones | P1 – P4, N1 (5) | ✅ |
 | 8 · Administración | X1 – X8 | pendiente |
 
 ## Rutas (flujo 1)
@@ -104,6 +104,18 @@ y son de ejemplo: hay que reemplazarlas por las reales. En Vercel, agrega la mis
 | `/zonas-comunes/[id]/reservar/confirmada?…` | Z6 · Reserva confirmada |
 | `/zonas-comunes/turco` · `/cancha-multiple` | Z7 · Turno inmediato · Z7b · Turno confirmado (hoja) |
 | `/zonas-comunes/piscina` · `/gimnasio` | Z8 · Zona sin reserva |
+
+## Rutas (flujo 7)
+
+| Ruta | Frame |
+| --- | --- |
+| `/perfil` | P1 · Perfil (las normas de la comunidad se abren en una hoja) |
+| `/perfil/inscripciones` | P2 · Mis reservas y actividades (incluye las reservas hechas en Zonas comunes) |
+| `/perfil/privacidad` | P3 · Qué ven tus vecinos |
+| `/perfil/notificaciones` | P4 · Preferencias de notificaciones |
+| `/notificaciones` | N1 · Notificaciones (al tocar una, queda leída) |
+
+Las preferencias y las notificaciones leídas se guardan en `sessionStorage` (`src/lib/profile/store.ts`).
 
 Las publicaciones propias y el borrador del servicio se guardan en `sessionStorage` (`src/lib/directory/store.ts`).
 
