@@ -132,6 +132,8 @@ Por ahora el panel se abre escribiendo la ruta `/admin` (cuando exista el inicio
 | `/admin/reportes/chaqueta-verde-oliva` | X7 · Revisar reporte |
 | `/admin/reportes/[id]/retirada` | X8 · Publicación retirada |
 
+`/politica-de-datos` es la política de tratamiento de datos (Ley 1581 de 2012), enlazada desde R5 y P3. **Es un borrador**: antes de publicar la app hay que revisarla con un abogado y completar la razón social, el NIT y el correo oficial.
+
 Las decisiones y los avisos publicados se guardan en `sessionStorage` (`src/lib/admin/store.ts`).
 
 Las publicaciones propias y el borrador del servicio se guardan en `sessionStorage` (`src/lib/directory/store.ts`).

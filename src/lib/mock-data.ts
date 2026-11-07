@@ -56,7 +56,7 @@ export const community = {
 
 export const currentResident = {
   firstName: "Sandra",
-  fullName: "Sandra Gómez",
+  fullName: "Sandra Rojas",
   tower: "E",
   apartment: "204",
   unitLabel: "Torre E · Apto 204",
@@ -128,7 +128,7 @@ export const nextActivity: Activity = {
   organizer: "Laura",
   spotsLeft: 4,
   capacity: 20,
-  image: "/images/ImagenYoga8k.png",
+  image: "/images/actividades/yoga-atardecer.jpg",
   imageAlt: "Vecinos haciendo yoga en la terraza al atardecer",
 };
 
