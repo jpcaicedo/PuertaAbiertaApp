@@ -46,7 +46,7 @@ export const adminRequests: AdminRequest[] = [
     place: "Salón social, Torre A",
     when: "Sábado 17, de 3:00 a 6:00 p. m.",
     capacity: "Hasta 20 personas, abierta a todo el conjunto",
-    by: { name: "Sandra", tower: "E", avatar: "/images/avatar-sandra.png" },
+    by: { name: "Sandra", tower: "E", avatar: "/images/avatar-sandra.jpg" },
     verb: "Propone",
     age: "Hace 5 min",
     waitingHours: 0,
