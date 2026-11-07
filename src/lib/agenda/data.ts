@@ -81,8 +81,6 @@ export const agendaItems: AgendaItem[] = [
     title: "Tarde de cuentos y pintura para niños",
     image: "/images/actividades/cuentos-y-pintura.jpg",
     imageAlt: "Una mujer lee un cuento ilustrado a un grupo de niños",
-    image: "/images/actividades/cuentos-y-pintura.jpg",
-    imageAlt: "Una mujer lee un cuento ilustrado a un grupo de niños",
     date: "2026-10-14",
     start: "16:30",
     end: "18:00",
