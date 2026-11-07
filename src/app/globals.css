@@ -37,6 +37,13 @@
   --pa-warning: #5a3300;
   --pa-warning-soft: #ffe8c7;
 
+  /* Superficies secundarias (flujo Inicio) */
+  --pa-surface-muted: #f4f6fa; /* círculos de apps al compartir */
+  --pa-preview: #efe7dd; /* fondo de vista previa del mensaje compartido */
+  --pa-handle: #d5dae3; /* agarradera de hojas */
+  --pa-live-dot: #c8e1ff; /* punto de la píldora "Hoy · 6:30 p. m." */
+  --pa-whatsapp: #25d366;
+
   /* Mapeo a las variables de shadcn/ui para que los componentes
      que se agreguen con `npx shadcn add` hereden la paleta. */
   --background: var(--pa-bg);
@@ -80,6 +87,11 @@
   --color-success-soft: var(--pa-success-soft);
   --color-warning: var(--pa-warning);
   --color-warning-soft: var(--pa-warning-soft);
+  --color-surface-muted: var(--pa-surface-muted);
+  --color-preview: var(--pa-preview);
+  --color-handle: var(--pa-handle);
+  --color-live-dot: var(--pa-live-dot);
+  --color-whatsapp: var(--pa-whatsapp);
 
   /* shadcn */
   --color-background: var(--background);
@@ -105,10 +117,14 @@
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 
   /* Escala tipográfica (tamaño / interlineado) */
+  --text-headline: 24px; /* Título de hoja grande · Bold */
+  --text-headline--line-height: 30px;
   --text-display: 28px; /* Título bienvenida · Bold */
   --text-display--line-height: 34px;
   --text-title: 22px; /* Título de pantalla · Bold */
   --text-title--line-height: 28px;
+  --text-subtitle: 20px; /* Título de tarjeta de actividad · Medium */
+  --text-subtitle--line-height: 28px;
   --text-heading: 18px; /* Título de hoja · SemiBold */
   --text-heading--line-height: 24px;
   --text-body: 15px; /* Párrafos, inputs, títulos de tarjeta */
@@ -119,6 +135,8 @@
   --text-caption--line-height: 18px;
   --text-overline: 12px; /* Eyebrow · SemiBold */
   --text-overline--line-height: 16px;
+  --text-micro: 11px; /* Píldoras sobre foto · Bold */
+  --text-micro--line-height: 14px;
 
   /* Radios */
   --radius-field: 12px; /* inputs, botón cámara, tile mediano */
@@ -129,6 +147,8 @@
 
   /* Sombras */
   --shadow-button: 0 4px 8px rgb(0 0 0 / 0.05);
+  --shadow-card: 0 2px 10px rgb(0 0 0 / 0.05);
+  --shadow-nav: 0 6px 10px rgb(0 0 0 / 0.12);
 }
 
 @layer base {
