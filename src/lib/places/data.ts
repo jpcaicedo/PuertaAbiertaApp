@@ -28,7 +28,11 @@ export type NeighborhoodPlace = {
   keywords: string[];
   /** Sin `pin` el lugar sale en la búsqueda pero no en el encuadre del plano. */
   pin?: { x: number; y: number };
+  /** Coordenadas reales para el mapa de Mapbox. TODO: reemplazar por las de cada lugar. */
+  coords: LngLat;
 };
+
+export type LngLat = { lng: number; lat: number };
 
 export const places: NeighborhoodPlace[] = [
   {
@@ -50,6 +54,7 @@ export const places: NeighborhoodPlace[] = [
       { name: "Juan", tower: "A", avatar: "/images/vecinos/juan.png", text: "Los sábados hay pan sin gluten. Llega antes de las 10." },
     ],
     whatsapp: "573000000001",
+    coords: { lng: -76.5262, lat: 3.4479 },
     keywords: ["café", "cafe", "cafetería", "repostería", "panadería", "trabajar", "wifi"],
     pin: { x: 209, y: 236 },
   },
@@ -68,6 +73,7 @@ export const places: NeighborhoodPlace[] = [
     cover: "/images/actividades/cata-cafe.jpg",
     reviews: [{ name: "Andrés", tower: "C", text: "Venden café en grano de fincas del Valle. Te lo muelen al momento." }],
     whatsapp: "573000000002",
+    coords: { lng: -76.5228, lat: 3.4433 },
     keywords: ["café", "cafe", "tostadora", "grano"],
   },
   {
@@ -83,6 +89,7 @@ export const places: NeighborhoodPlace[] = [
     address: "Carrera 98 # 16-10",
     reviews: [{ name: "Marta", tower: "E", text: "El pandebono sale a las 4 p. m. y se acaba rápido." }],
     whatsapp: "573000000003",
+    coords: { lng: -76.5268, lat: 3.4572 },
     keywords: ["pan", "panadería", "pastelería", "pandebono", "desayuno"],
     pin: { x: 200, y: 40 },
   },
@@ -99,6 +106,7 @@ export const places: NeighborhoodPlace[] = [
     address: "Calle 25 # 103-08",
     reviews: [{ name: "Hernán", tower: "B", text: "Hacen domicilios al conjunto sin costo desde $40.000." }],
     whatsapp: "573000000004",
+    coords: { lng: -76.5398, lat: 3.4551 },
     keywords: ["mercado", "frutas", "verduras", "supermercado", "domicilio"],
     pin: { x: 24, y: 96 },
   },
@@ -116,12 +124,20 @@ export const places: NeighborhoodPlace[] = [
     address: "Carrera 105 # 18-44",
     reviews: [{ name: "Laura", tower: "A", text: "Atienden urgencias los sábados en la mañana." }],
     whatsapp: "573000000005",
+    coords: { lng: -76.5395, lat: 3.4478 },
     keywords: ["veterinaria", "perro", "gato", "mascota", "peluquería"],
     pin: { x: 28, y: 270 },
   },
 ];
 
-export const RESIDENCE = { label: "Residencial Samán", pin: { x: 128, y: 150 } };
+export const RESIDENCE = {
+  label: "Residencial Samán",
+  pin: { x: 128, y: 150 },
+  /** Centro por defecto del mapa (Cali). TODO: usar la ubicación real del conjunto. */
+  coords: { lng: -76.53198, lat: 3.45164 } as LngLat,
+};
+
+export const MAP_DEFAULT_ZOOM = 13;
 
 export const placeFilters: { id: "todos" | "beneficio" | PlaceCategory; label: string }[] = [
   { id: "todos", label: "Todos" },

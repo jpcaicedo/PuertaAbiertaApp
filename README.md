@@ -65,9 +65,16 @@ npm run dev        # http://localhost:3000
 | `/mapa/buscar?q=café` | M2 · Buscar lugares · M2b · Sin resultados (p. ej. `?q=sushi`) |
 | `/mapa/[id]` | M3 · Detalle del lugar |
 
-El plano de M1 es la ilustración del diseño (`public/images/mapa/plano-valle-del-lili.png`) con los pines
-posicionados encima. Para un mapa real se puede reemplazar por MapLibre o Google Maps conservando los
-mismos pines y la tarjeta destacada (`src/components/mapa/map-screen.tsx`).
+**Mapa real con Mapbox.** Copia `.env.example` como `.env.local` y pon tu token público:
+
+```bash
+NEXT_PUBLIC_MAPBOX_TOKEN=pk.xxxxx
+```
+
+Con token, M1 muestra Mapbox (`streets-v12`, centrado en Cali, zoom 13) con los pines como `<Marker>`.
+Sin token, usa el plano ilustrado del diseño. Las coordenadas de los lugares están en `src/lib/places/data.ts`
+y son de ejemplo: hay que reemplazarlas por las reales. En Vercel, agrega la misma variable en
+*Settings → Environment Variables*.
 
 Las pantallas de detalle y formularios viven en `src/app/(detail)/`, sin barra inferior.
 El estado de inscripciones, lista de espera y "Voy" se guarda en `sessionStorage` (`src/lib/agenda/store.ts`) hasta que exista la API.

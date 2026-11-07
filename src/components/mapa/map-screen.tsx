@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { LocateFixed, Search, SlidersHorizontal } from "lucide-react";
@@ -12,10 +13,19 @@ import {
   formatDistance,
   placeFilters,
   places,
+  type LngLat,
   type NeighborhoodPlace,
 } from "@/lib/places/data";
 import { cn } from "@/lib/utils";
 import { placeIcons } from "./icons";
+import { MapPin, ResidencePin } from "./map-pin";
+
+/** Mapbox solo en el navegador (usa WebGL y `window`). Mientras carga se ve el fondo gris del contenedor. */
+const NeighborhoodMap = dynamic(() => import("./neighborhood-map"), {
+  ssr: false,
+});
+/** Sin token se usa el plano ilustrado del diseño. */
+const USE_MAPBOX = Boolean(process.env.NEXT_PUBLIC_MAPBOX_TOKEN);
 
 type FilterId = (typeof placeFilters)[number]["id"];
 
@@ -24,8 +34,8 @@ const DEFAULT_PLACE = "cafe-saman-artesanal";
 
 /**
  * M1 · Mapa (484:3258).
- * El plano es la ilustración del diseño (390×644) con los pines encima, posicionados en px.
- * Para producción se puede cambiar por MapLibre/Google Maps manteniendo los mismos pines y la tarjeta.
+ * Fondo: mapa real de Mapbox si existe NEXT_PUBLIC_MAPBOX_TOKEN; si no, el plano ilustrado del diseño.
+ * Encima: botón Centrar (overlay sin eventos salvo el botón) y la tarjeta del lugar destacado.
  */
 export function MapScreen() {
   const [filter, setFilter] = React.useState<FilterId>("todos");
@@ -39,6 +49,13 @@ export function MapScreen() {
         : p.categories.includes(filter),
   );
   const selected = visible.find((p) => p.id === selectedId) ?? visible[0];
+  const [focus, setFocus] = React.useState<{ key: number; to: LngLat }>();
+
+  function select(id: string) {
+    setSelectedId(id);
+    const place = places.find((p) => p.id === id);
+    if (place) setFocus({ key: Date.now(), to: place.coords });
+  }
 
   return (
     <main className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-bg">
@@ -97,59 +114,37 @@ export function MapScreen() {
         ))}
       </div>
 
-      {/* Plano */}
+      {/* Mapa (fondo) + capa de controles encima */}
       <div className="relative flex-1 overflow-hidden bg-[#f9f9f9]">
-        <div className="absolute top-0 left-1/2 h-[644px] w-[390px] -translate-x-1/2">
-          <Image
-            src="/images/mapa/plano-valle-del-lili.png"
-            alt=""
-            fill
-            priority
-            sizes="390px"
-            className="pointer-events-none select-none"
+        {USE_MAPBOX ? (
+          <NeighborhoodMap
+            places={visible}
+            selectedId={selected?.id}
+            onSelect={select}
+            focus={focus}
           />
+        ) : (
+          <StaticMap
+            places={visible}
+            selectedId={selected?.id}
+            onSelect={select}
+          />
+        )}
 
-          {/* Tú estás aquí */}
-          <div
-            className="absolute flex flex-col items-center gap-1.5"
-            style={{ left: RESIDENCE.pin.x, top: RESIDENCE.pin.y }}
+        {/* Overlay: no captura eventos para que el zoom y el arrastre lleguen al mapa; solo sus botones sí. */}
+        <div className="pointer-events-none absolute inset-0">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedId(DEFAULT_PLACE);
+              setFocus({ key: Date.now(), to: RESIDENCE.coords });
+            }}
+            aria-label="Centrar en mi conjunto"
+            className="pointer-events-auto absolute top-4 right-[max(16px,calc(50%-179px))] grid cursor-pointer place-items-center rounded-[22px] bg-surface p-2.5 text-ink shadow-[0_4px_14px_rgb(0_0_0/0.14)] transition-transform active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
-            <span
-              aria-hidden
-              className="size-[22px] rounded-full border-4 border-white bg-brand shadow-[0_0_0_10px_rgb(1_75_163/0.15)]"
-            />
-            <span className="rounded-field bg-ink px-2.5 py-1 text-overline font-medium text-white">
-              {RESIDENCE.label}
-            </span>
-          </div>
-
-          <ul aria-label="Lugares en el mapa">
-            {visible.map((p) =>
-              p.pin ? (
-                <li
-                  key={p.id}
-                  className="absolute"
-                  style={{ left: p.pin.x, top: p.pin.y }}
-                >
-                  <MapPin
-                    place={p}
-                    selected={p.id === selected?.id}
-                    onSelect={() => setSelectedId(p.id)}
-                  />
-                </li>
-              ) : null,
-            )}
-          </ul>
+            <LocateFixed className="size-5" strokeWidth={2} aria-hidden />
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setSelectedId(DEFAULT_PLACE)}
-          aria-label="Centrar en mi conjunto"
-          className="absolute top-4 right-[max(16px,calc(50%-179px))] grid cursor-pointer place-items-center rounded-[22px] bg-surface p-2.5 text-ink shadow-[0_4px_14px_rgb(0_0_0/0.14)] transition-transform active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-brand"
-        >
-          <LocateFixed className="size-5" strokeWidth={2} aria-hidden />
-        </button>
       </div>
 
       {selected && <FeaturedPlace place={selected} />}
@@ -157,50 +152,50 @@ export function MapScreen() {
   );
 }
 
-/**
- * Pin: blanco, radio 20, padding 6/12/6/6, sombra 0 4 14 / 14 %; tile #DAE2FD de 26 con icono 16.
- * Seleccionado: fondo #FD9200, tile blanco, texto 13/18 marrón y el beneficio al lado (Figma "Pin · Café Samán").
- */
-function MapPin({
-  place,
-  selected,
+/** Plano ilustrado del diseño (respaldo cuando no hay token de Mapbox). Pines en px sobre 390×644. */
+function StaticMap({
+  places: list,
+  selectedId,
   onSelect,
 }: {
-  place: NeighborhoodPlace;
-  selected: boolean;
-  onSelect: () => void;
+  places: NeighborhoodPlace[];
+  selectedId?: string;
+  onSelect: (id: string) => void;
 }) {
-  const Icon = placeIcons[place.icon];
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
-      className={cn(
-        "flex cursor-pointer items-center gap-1.5 rounded-[20px] py-1.5 pr-3 pl-1.5 whitespace-nowrap shadow-[0_4px_14px_rgb(0_0_0/0.14)] transition-[transform,background-color] duration-150 active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-brand",
-        selected ? "z-10 bg-step-current" : "bg-surface hover:-translate-y-0.5",
-      )}
-    >
-      <span
-        aria-hidden
-        className={cn(
-          "inline-flex rounded-chip p-[5px]",
-          selected ? "bg-surface text-warning" : "bg-brand-soft text-brand",
+    <div className="absolute top-0 left-1/2 h-[644px] w-[390px] -translate-x-1/2">
+      <Image
+        src="/images/mapa/plano-valle-del-lili.png"
+        alt=""
+        fill
+        priority
+        sizes="390px"
+        className="pointer-events-none select-none"
+      />
+      <div
+        className="absolute"
+        style={{ left: RESIDENCE.pin.x, top: RESIDENCE.pin.y }}
+      >
+        <ResidencePin label={RESIDENCE.label} />
+      </div>
+      <ul aria-label="Lugares en el mapa">
+        {list.map((p) =>
+          p.pin ? (
+            <li
+              key={p.id}
+              className={cn("absolute", p.id === selectedId && "z-10")}
+              style={{ left: p.pin.x, top: p.pin.y }}
+            >
+              <MapPin
+                place={p}
+                selected={p.id === selectedId}
+                onSelect={() => onSelect(p.id)}
+              />
+            </li>
+          ) : null,
         )}
-      >
-        <Icon className="size-4" strokeWidth={2} />
-      </span>
-      <span
-        className={
-          selected
-            ? "text-caption font-semibold text-warning"
-            : "text-overline font-semibold text-text"
-        }
-      >
-        {place.pinLabel}
-        {selected && place.benefit ? ` · ${place.benefit.short}` : ""}
-      </span>
-    </button>
+      </ul>
+    </div>
   );
 }
 
