@@ -113,8 +113,8 @@
   --pa-brand-text: #8cb8ff; /* texto e iconos azules sobre fondos oscuros */
   --pa-brand-soft: #1d2f4d;
 
-  --pa-bg: #0f1419;
-  --pa-surface: #1a2029;
+  --pa-bg: #1d1c1c;
+  --pa-surface: #282727;
   --pa-ink: #e8edf5; /* el botón primario se invierte: claro con texto oscuro */
   --pa-ink-hover: #ffffff;
   --pa-scrim: rgb(0 0 0 / 0.6);
@@ -122,10 +122,10 @@
   --pa-text: #e8edf5;
   --pa-text-secondary: #b4bccb;
   --pa-text-tertiary: #98a2b3;
-  --pa-text-on-dark: #0f1419;
+  --pa-text-on-dark: #1d1c1c;
 
-  --pa-border: #3a4452;
-  --pa-border-subtle: #2a323e;
+  --pa-border: #4a4747;
+  --pa-border-subtle: #383636;
 
   --pa-error: #ff8a80;
   --pa-success: #3fb27f;
@@ -133,26 +133,26 @@
   --pa-warning: #f5c37a;
   --pa-warning-soft: #3a2a14;
 
-  --pa-surface-muted: #222a35;
+  --pa-surface-muted: #312f2f;
   --pa-preview: #2a2620;
-  --pa-handle: #3a4452;
+  --pa-handle: #4a4747;
 
   --pa-illustration: #3a2a14;
   --pa-illustration-ink: #f0a347;
-  --pa-option-border: #2a323e;
+  --pa-option-border: #383636;
   --pa-option-blue: #1b2b45;
   --pa-option-orange: #3a2a14;
-  --pa-note: #222a35;
-  --pa-step-pending: #3a4452;
+  --pa-note: #312f2f;
+  --pa-step-pending: #4a4747;
 
-  --pa-segment: #222a35;
-  --pa-toast: #2a3342;
+  --pa-segment: #312f2f;
+  --pa-toast: #3a3838;
 
   --pa-status-success-soft: #163527;
   --pa-status-success: #5fd39b;
   --pa-status-pending: #f0b45a;
   --pa-text-muted: #8b95a5;
-  --pa-unread: #151c25;
+  --pa-unread: #232222;
 }
 
 @theme inline {
