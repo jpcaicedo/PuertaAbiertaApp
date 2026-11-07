@@ -10,26 +10,29 @@ import { cn } from "@/lib/utils";
  * El segundo pixel del borde se pinta con un box-shadow inset para que el
  * texto no se desplace al cambiar de estado (igual que el stroke "inside" de Figma).
  */
-const boxBase = [
+export const boxBase = [
   "flex w-full items-center gap-2.5 bg-surface px-4",
   "rounded-field border border-border transition-[border-color,box-shadow] duration-150",
   "focus-within:border-brand focus-within:shadow-[inset_0_0_0_1px_var(--pa-brand)]",
   "has-[input:disabled]:opacity-50 has-[textarea:disabled]:opacity-50",
 ];
-const boxError = "border-error shadow-[inset_0_0_0_1px_var(--pa-error)] focus-within:border-error focus-within:shadow-[inset_0_0_0_1px_var(--pa-error)]";
-const fieldText =
+export const boxError = "border-error shadow-[inset_0_0_0_1px_var(--pa-error)] focus-within:border-error focus-within:shadow-[inset_0_0_0_1px_var(--pa-error)]";
+export const fieldText =
   "w-full min-w-0 flex-1 bg-transparent text-body text-text outline-none placeholder:text-text-tertiary disabled:cursor-not-allowed";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   invalid?: boolean;
+  /** Elemento al inicio de la caja (icono de 20px). */
+  startAdornment?: React.ReactNode;
   /** Elemento al final de la caja (icono, botón). */
   endAdornment?: React.ReactNode;
   boxClassName?: string;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, boxClassName, invalid, endAdornment, ...props }, ref) => (
+  ({ className, boxClassName, invalid, startAdornment, endAdornment, ...props }, ref) => (
     <div className={cn(boxBase, "h-[52px]", invalid && boxError, boxClassName)}>
+      {startAdornment}
       <input ref={ref} aria-invalid={invalid || undefined} className={cn(fieldText, className)} {...props} />
       {endAdornment}
     </div>
@@ -37,7 +40,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
-export type PasswordInputProps = Omit<InputProps, "type" | "endAdornment">;
+export type PasswordInputProps = Omit<InputProps, "type" | "endAdornment" | "startAdornment">;
 
 /** Input de contraseña con botón de mostrar/ocultar (icono eye 20px, #45464D). */
 export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>((props, ref) => {

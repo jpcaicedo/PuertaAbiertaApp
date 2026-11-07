@@ -44,6 +44,16 @@
   --pa-live-dot: #c8e1ff; /* punto de la píldora "Hoy · 6:30 p. m." */
   --pa-whatsapp: #25d366;
 
+  /* Flujo Agenda */
+  --pa-illustration: #fff1dc; /* cabecera ilustrada de eventos del barrio */
+  --pa-illustration-ink: #c46f00; /* icono de la cabecera ilustrada */
+  --pa-option-border: #e3e7ee; /* tarjetas de opción (proponer un plan) */
+  --pa-option-blue: #e9f0fb;
+  --pa-option-orange: #fff2e0;
+  --pa-note: #f2f4f6; /* aclaraciones neutras */
+  --pa-step-current: #fd9200; /* paso en curso */
+  --pa-step-pending: #e2e0e1; /* paso pendiente */
+
   /* Mapeo a las variables de shadcn/ui para que los componentes
      que se agreguen con `npx shadcn add` hereden la paleta. */
   --background: var(--pa-bg);
@@ -92,6 +102,14 @@
   --color-handle: var(--pa-handle);
   --color-live-dot: var(--pa-live-dot);
   --color-whatsapp: var(--pa-whatsapp);
+  --color-illustration: var(--pa-illustration);
+  --color-illustration-ink: var(--pa-illustration-ink);
+  --color-option-border: var(--pa-option-border);
+  --color-option-blue: var(--pa-option-blue);
+  --color-option-orange: var(--pa-option-orange);
+  --color-note: var(--pa-note);
+  --color-step-current: var(--pa-step-current);
+  --color-step-pending: var(--pa-step-pending);
 
   /* shadcn */
   --color-background: var(--background);
@@ -149,6 +167,9 @@
   --shadow-button: 0 4px 8px rgb(0 0 0 / 0.05);
   --shadow-card: 0 2px 10px rgb(0 0 0 / 0.05);
   --shadow-nav: 0 6px 10px rgb(0 0 0 / 0.12);
+  --shadow-feature: 0 4px 16px rgb(15 23 42 / 0.1); /* tarjeta destacada de la agenda */
+  --shadow-bar: 0 -4px 16px rgb(0 0 0 / 0.08); /* barra de acción inferior */
+  --shadow-toast: 0 8px 24px rgb(0 0 0 / 0.15);
 }
 
 @layer base {

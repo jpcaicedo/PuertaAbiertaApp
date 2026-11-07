@@ -13,6 +13,7 @@ const badgeVariants = cva(
       tone: {
         brand: "bg-brand-soft text-brand",
         success: "bg-success-soft text-success",
+        warning: "bg-warning-soft text-warning",
       },
     },
     defaultVariants: { tone: "brand" },
