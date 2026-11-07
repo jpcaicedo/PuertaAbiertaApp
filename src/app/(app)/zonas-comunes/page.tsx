@@ -7,7 +7,7 @@ export const metadata = { title: "Zonas comunes · Puerta Abierta" };
 /** Z1 · Zonas comunes (484:4186). Se llega desde Inicio, por eso la pestaña activa es Inicio. */
 export default function ZonasComunesPage() {
   return (
-    <Screen className="pb-[calc(max(22px,env(safe-area-inset-bottom))+104px)]">
+    <Screen className="pb-tabbar">
       <ScreenHeader backHref="/inicio" />
       <ScreenBody gap={12} className="pt-3">
         <ScreenTitle>Zonas comunes</ScreenTitle>

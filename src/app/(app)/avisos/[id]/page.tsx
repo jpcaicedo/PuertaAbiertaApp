@@ -45,7 +45,7 @@ export default async function AvisoPage({ params }: Props) {
       </ScreenBody>
 
       {/* 25px sobre la barra inferior (64 + 22) */}
-      <ScreenActions className="pb-[calc(max(22px,env(safe-area-inset-bottom))+89px)]">
+      <ScreenActions className="pb-[calc(var(--tabbar-offset)+89px)]">
         <ShareNotice notice={notice} variant="block" />
         <Button asChild className="rounded-[77px]">
           <Link href="/inicio">Entendido</Link>

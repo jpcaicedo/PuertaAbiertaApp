@@ -176,7 +176,7 @@ export function ActionBar({ children, className }: { children: React.ReactNode; 
   return (
     <>
       <div aria-hidden className="h-[124px] shrink-0" />
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] bg-surface px-5 pt-3 pb-[max(28px,env(safe-area-inset-bottom))] shadow-bar">
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] bg-surface px-5 pt-3 pb-[max(28px,calc(var(--safe-bottom)+12px))] shadow-bar">
         <div className={cn("flex w-full gap-2", className)}>{children}</div>
       </div>
     </>

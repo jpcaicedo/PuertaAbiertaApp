@@ -38,7 +38,7 @@ export function SearchScreen({ initialQuery }: { initialQuery: string }) {
   }, [term, pathname, router]);
 
   return (
-    <Screen className="pb-[calc(max(22px,env(safe-area-inset-bottom))+104px)]">
+    <Screen className="pb-tabbar">
       {/* Barra superior: Atrás 44 + campo 46 con borde azul de 2 */}
       <div className="flex items-center gap-1.5 pt-[max(48px,env(safe-area-inset-top))] pr-5 pl-2">
         <Link

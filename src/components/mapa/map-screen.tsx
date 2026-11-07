@@ -206,7 +206,7 @@ function FeaturedPlace({ place }: { place: NeighborhoodPlace }) {
   return (
     <section
       aria-label={`Lugar destacado: ${place.name}`}
-      className="fixed inset-x-0 bottom-[calc(max(22px,env(safe-area-inset-bottom))+78px)] z-30 mx-auto w-[calc(100%-32px)] max-w-[398px]"
+      className="fixed inset-x-0 bottom-[calc(var(--tabbar-offset)+78px)] z-30 mx-auto w-[calc(100%-32px)] max-w-[398px]"
     >
       <div className="relative flex w-full flex-col gap-2.5 rounded-[22px] bg-surface p-3.5 shadow-[0_4px_14px_rgb(0_0_0/0.12)] has-[a.stretched:focus-visible]:ring-2 has-[a.stretched:focus-visible]:ring-brand">
         <p className="text-overline font-medium text-brand uppercase">

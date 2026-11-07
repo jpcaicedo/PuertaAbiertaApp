@@ -57,7 +57,7 @@ export function AgendaScreen({ day, filters }: Props) {
     c ? filters.categories.length === 1 && filters.categories[0] === c : filters.categories.length === 0;
 
   return (
-    <Screen className="pb-[calc(max(22px,env(safe-area-inset-bottom))+104px)]">
+    <Screen className="pb-tabbar">
       <div className="pt-[max(40px,env(safe-area-inset-top))]">
         <HomeHeader {...currentResident} />
       </div>

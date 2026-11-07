@@ -8,6 +8,15 @@
    ────────────────────────────────────────────────────────────── */
 
 :root {
+  /* Zonas seguras de iOS: notch, indicador de inicio y barra flotante de Safari.
+     Requieren viewport-fit=cover (ver `viewport` en src/app/layout.tsx). */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* Barra inferior: 22px del borde (Figma) o, en iPhone, 12px por encima de la zona segura. */
+  --tabbar-offset: max(22px, calc(var(--safe-bottom) + 12px));
+  /* Espacio que debe dejar el contenido para que la barra no lo tape: offset + 64 de barra + 40 de aire. */
+  --tabbar-clearance: calc(var(--tabbar-offset) + 104px);
+
   /* Marca */
   --pa-brand: #014ba3; /* "Marca/Azul Skema" */
   --pa-brand-hover: #013f8a;
@@ -201,8 +210,21 @@
   }
   html {
     -webkit-tap-highlight-color: transparent;
+    background-color: var(--pa-bg);
   }
   body {
-    @apply bg-bg text-text font-sans antialiased;
+    @apply min-h-dvh bg-bg text-text font-sans antialiased;
   }
+}
+
+/* Utilidades de zona segura */
+@utility pb-safe {
+  padding-bottom: var(--safe-bottom);
+}
+@utility pt-safe {
+  padding-top: var(--safe-top);
+}
+/* Reserva el espacio de la barra inferior al final de una pantalla con pestañas. */
+@utility pb-tabbar {
+  padding-bottom: var(--tabbar-clearance);
 }
