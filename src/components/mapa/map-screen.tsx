@@ -7,7 +7,6 @@ import Link from "next/link";
 import { LocateFixed, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HomeHeader } from "@/components/app/home-header";
-import { currentResident } from "@/lib/mock-data";
 import {
   RESIDENCE,
   formatDistance,
@@ -60,7 +59,7 @@ export function MapScreen() {
   return (
     <main className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-bg">
       <div className="shrink-0 pt-[max(40px,env(safe-area-inset-top))]">
-        <HomeHeader {...currentResident} />
+        <HomeHeader />
       </div>
 
       {/* Buscar + filtrar (46 de alto, radio 14, borde #E2E0E1) */}

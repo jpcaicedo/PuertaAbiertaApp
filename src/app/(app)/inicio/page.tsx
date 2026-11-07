@@ -2,7 +2,7 @@ import { HomeHeader } from "@/components/app/home-header";
 import { ActivityCard, NoticeCard, PlaceCard } from "@/components/app/home-cards";
 import { SectionHeader } from "@/components/app/section-header";
 import { Screen } from "@/components/app/screen";
-import { currentResident, getNotices, nextActivity, recommendedPlace } from "@/lib/mock-data";
+import { getNotices, nextActivity, recommendedPlace } from "@/lib/mock-data";
 
 // Los avisos muestran "Hace 2 h": se calcula en cada visita, no en el build.
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export default function InicioPage() {
     <Screen className="pb-tabbar">
       {/* 40px de barra de estado + encabezado de 64 */}
       <div className="pt-[max(40px,env(safe-area-inset-top))]">
-        <HomeHeader {...currentResident} />
+        <HomeHeader />
       </div>
 
       <div className="flex flex-col items-start px-5 pt-3">

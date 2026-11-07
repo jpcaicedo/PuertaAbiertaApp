@@ -11,7 +11,8 @@ import { Screen, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from
 import { ActionBar, Note } from "@/components/agenda/primitives";
 import { FieldIcon } from "@/components/agenda/fields";
 import { ChoiceChips } from "@/components/directorio/ui";
-import { community, currentResident } from "@/lib/mock-data";
+import { community } from "@/lib/mock-data";
+import { useCurrentUser } from "@/components/app/current-user";
 import { productCategories, productConditions, type ProductCategory, type ProductCondition } from "@/lib/directory/data";
 import { directoryActions } from "@/lib/directory/store";
 
@@ -31,7 +32,8 @@ export default function VenderProductoPage() {
   const [price, setPrice] = React.useState("");
   const [category, setCategory] = React.useState<ProductCategory | "">("");
   const [condition, setCondition] = React.useState<ProductCondition | "">("");
-  const [delivery, setDelivery] = React.useState(`En la portería de la ${currentResident.unitLabel.split(" · ")[0]}`);
+  const user = useCurrentUser();
+  const [delivery, setDelivery] = React.useState(`En la portería de la ${user.unitLabel.split(" · ")[0]}`);
   const [errors, setErrors] = React.useState<Errors>({});
 
   React.useEffect(() => () => photos.forEach((p) => URL.revokeObjectURL(p)), [photos]);

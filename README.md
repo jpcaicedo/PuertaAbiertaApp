@@ -180,3 +180,48 @@ Clases disponibles, por ejemplo: `bg-brand`, `bg-brand-soft`, `text-text-seconda
 - Los colores salen de los mismos tokens: el bloque `.dark { … }` de `src/app/globals.css` los reasigna, así que los componentes casi no llevan clases `dark:`.
 - En modo oscuro el mapa usa el estilo `mapbox/dark-v11`.
 
+
+## Backend (Supabase)
+
+La app usa Supabase para la base de datos y las cuentas. Si las variables de Supabase no están, funciona en **modo demo** con los datos de ejemplo (sirve para trabajar en diseño sin conexión).
+
+### Variables de entorno
+
+En `.env.local` (y en Vercel → Settings → Environment Variables):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://<proyecto>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+La clave `service_role` (secret) **nunca** va en el código, en `.env.local` ni en Vercel.
+
+### Crear las tablas
+
+En Supabase → SQL Editor, pega y ejecuta en este orden:
+
+1. `supabase/migrations/0001_base.sql` — tablas, permisos (RLS) y la función que crea el perfil al registrarse.
+2. `supabase/seed.sql` — Residencial Samán, torres A–E y códigos de prueba.
+
+### Códigos de prueba
+
+| Código | Unidad | Rol |
+| --- | --- | --- |
+| SAM-E204-K7Q | Torre E · Apto 204 | vecino |
+| SAM-B402-M3P | Torre B · Apto 402 | vecino |
+| SAM-A101-R8T | Torre A · Apto 101 | vecino |
+| SAM-C301-X2L | Torre C · Apto 301 | vecino |
+| SAM-A001-ADM | Administración | administracion |
+
+Cada código sirve una sola vez. Para reutilizarlo, borra el usuario en Authentication → Users y ejecuta:
+`update codigos_residencia set usado_por = null, usado_en = null where codigo = 'SAM-E204-K7Q';`
+
+### Antes de abrirla a residentes reales
+
+- Volver a activar **Confirm email** (Authentication → Sign In / Providers → Email).
+- Activar **Secure email change** y **Secure password change**.
+- Generar códigos nuevos (los de arriba son públicos).
+
+### Qué está conectado (bloque 1)
+
+Registro (R2–R6), inicio de sesión, cierre de sesión, protección de rutas y `/admin` solo para administración. Nombre, unidad y foto del usuario salen de la base de datos. El resto de secciones (agenda, avisos, zonas, directorio, marketplace) siguen con datos de ejemplo hasta los próximos bloques. La recuperación de contraseña aún es simulada.

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { Bell, Book, Calendar, Eye, LogOut, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +13,8 @@ import {
 import { RuleCard } from "@/components/app/cards";
 import { Screen } from "@/components/app/screen";
 import { communityRules } from "@/lib/community";
-import { currentResident } from "@/lib/mock-data";
+import { signOut } from "@/lib/auth/actions";
+import { useCurrentUser, UserAvatar } from "@/components/app/current-user";
 import { useDirectoryState } from "@/lib/directory/store";
 import { activitySummary, useMyActivity } from "@/lib/profile/activity";
 import { useProfileState } from "@/lib/profile/store";
@@ -24,13 +24,14 @@ import { ListGroup, NavRow, SectionLabel } from "./ui";
 /** Lo que ven los vecinos según P3: "Sandra, Torre E" (+ ", apto 204"). */
 export function useVisibleName() {
   const { privacy } = useProfileState();
-  const r = currentResident;
+  const r = useCurrentUser();
   return `${r.firstName}, Torre ${r.tower}${privacy.showApartment ? `, apto ${r.apartment}` : ""}`;
 }
 
 /** P1 · Perfil (484:5360) */
 export function ProfileScreen() {
-  const r = currentResident;
+  const r = useCurrentUser();
+  const [signingOut, startSignOut] = React.useTransition();
   const visibleName = useVisibleName();
   const { upcoming } = useMyActivity();
   const { listings } = useDirectoryState();
@@ -47,7 +48,7 @@ export function ProfileScreen() {
           aria-label="Tu perfil"
           className="flex w-full items-center gap-3.5 rounded-[18px] border border-option-border bg-surface p-4"
         >
-          <Image src={r.avatar} alt="" width={64} height={64} className="size-16 shrink-0 rounded-full object-cover" />
+          <UserAvatar user={r} size={64} />
           <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
             <p className="text-subtitle font-bold text-text">{r.fullName}</p>
             <p className="text-label text-text-tertiary">
@@ -105,8 +106,12 @@ export function ProfileScreen() {
         </ListGroup>
 
         <ListGroup label="Sesión">
-          {/* TODO: POST /api/auth/logout antes de volver a la bienvenida. */}
-          <NavRow href="/" icon={LogOut} tone="neutral" title="Cerrar sesión" />
+          <NavRow
+            onClick={() => startSignOut(() => signOut())}
+            icon={LogOut}
+            tone="neutral"
+            title={signingOut ? "Cerrando sesión…" : "Cerrar sesión"}
+          />
         </ListGroup>
       </div>
 

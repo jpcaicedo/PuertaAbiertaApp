@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Screen, ScreenActions, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from "@/components/app/screen";
 import { InfoList, InfoRow, Note } from "@/components/agenda/primitives";
 import { Avatar, VerifiedMark } from "@/components/directorio/ui";
-import { currentResident, demoUser } from "@/lib/mock-data";
+import { useCurrentUser } from "@/components/app/current-user";
 import { directoryActions, useDirectoryState } from "@/lib/directory/store";
 
 /** D6 · Vista previa del servicio (484:3906) */
 export default function VistaPreviaServicioPage() {
+  const user = useCurrentUser();
   const router = useRouter();
   const { serviceDraft: d } = useDirectoryState();
   const publishing = React.useRef(false);
@@ -43,13 +44,13 @@ export default function VistaPreviaServicioPage() {
         {/* Tarjeta con borde punteado azul: es una vista previa, no se puede tocar */}
         <section aria-label="Vista previa" className="flex w-full flex-col items-start gap-2.5 rounded-[18px] border-[1.5px] border-dashed border-brand bg-surface p-4">
           <div className="flex items-center gap-3">
-            <Avatar name={demoUser.name} src={demoUser.avatar} size={48} />
+            <Avatar name={user.fullName} src={user.avatar ?? undefined} size={48} />
             <div className="flex flex-col gap-0.5">
               <p className="flex items-center gap-1.5 text-body font-semibold text-text">
-                {demoUser.name}
+                {user.fullName}
                 <VerifiedMark />
               </p>
-              {d.showApartment && <p className="text-caption text-text-secondary">{currentResident.unitLabel.split(" · ").reverse().join(" · ")}</p>}
+              {d.showApartment && <p className="text-caption text-text-secondary">{user.unitLabel.split(" · ").reverse().join(" · ")}</p>}
             </div>
           </div>
           <h2 className="text-heading font-semibold text-text">{d.title}</h2>

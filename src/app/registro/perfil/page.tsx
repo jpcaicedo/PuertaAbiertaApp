@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
@@ -9,6 +8,7 @@ import { AvatarPicker } from "@/components/app/avatar-picker";
 import { ToggleList, ToggleRow } from "@/components/app/controls";
 import { FormField } from "@/components/app/form-field";
 import { Screen, ScreenActions, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from "@/components/app/screen";
+import { saveProfileSetup } from "@/lib/auth/actions";
 
 type Visibility = { apartment: boolean; phone: boolean; directory: boolean };
 
@@ -18,11 +18,31 @@ export default function PerfilPage() {
   const [bio, setBio] = React.useState("");
   const [visibility, setVisibility] = React.useState<Visibility>({ apartment: true, phone: false, directory: true });
   const toggle = (key: keyof Visibility) => (checked: boolean) => setVisibility((v) => ({ ...v, [key]: checked }));
+  const [error, setError] = React.useState<string>();
+  const [saving, startSave] = React.useTransition();
+
+  function enter() {
+    router.replace("/inicio");
+    router.refresh();
+  }
 
   function save(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: persistir { bio, visibility, foto } en la API.
-    router.push("/inicio");
+    setError(undefined);
+    startSave(async () => {
+      // TODO (bloque 3): subir la foto a Supabase Storage.
+      const result = await saveProfileSetup({
+        bio,
+        showApartment: visibility.apartment,
+        showPhone: visibility.phone,
+        inDirectory: visibility.directory,
+      });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      enter();
+    });
   }
 
   return (
@@ -56,9 +76,16 @@ export default function PerfilPage() {
         </ScreenBody>
 
         <ScreenActions>
-          <Button type="submit">Guardar y entrar</Button>
-          <Button asChild variant="link">
-            <Link href="/inicio">Omitir por ahora</Link>
+          {error && (
+            <p role="alert" className="text-caption text-error">
+              {error}
+            </p>
+          )}
+          <Button type="submit" disabled={saving}>
+            {saving ? "Guardando…" : "Guardar y entrar"}
+          </Button>
+          <Button type="button" variant="link" onClick={enter}>
+            Omitir por ahora
           </Button>
         </ScreenActions>
       </form>

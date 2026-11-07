@@ -7,6 +7,7 @@ import { Input, PasswordInput } from "@/components/ui/input";
 import { SuccessBanner } from "@/components/app/cards";
 import { FormField } from "@/components/app/form-field";
 import { Screen, ScreenActions, ScreenBody, ScreenHeader, ScreenTitle } from "@/components/app/screen";
+import { useRegistration } from "../registration-context";
 
 const PASSWORD_HINT = "Mínimo 8 caracteres, con al menos un número.";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,9 +22,15 @@ function validate(values: { name: string; email: string; password: string }): Er
   return errors;
 }
 
-export function CrearCuentaForm({ unitLabel }: { unitLabel: string }) {
+export function CrearCuentaForm({ code, unitLabel }: { code: string; unitLabel: string }) {
   const router = useRouter();
-  const [values, setValues] = React.useState({ name: "", email: "", password: "" });
+  const { draft, update } = useRegistration();
+  // Si vuelve atrás desde R5, recupera lo que ya había escrito.
+  const [values, setValues] = React.useState({
+    name: draft.name ?? "",
+    email: draft.email ?? "",
+    password: draft.password ?? "",
+  });
   const [errors, setErrors] = React.useState<Errors>({});
 
   const set = (key: keyof typeof values) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +42,9 @@ export function CrearCuentaForm({ unitLabel }: { unitLabel: string }) {
     e.preventDefault();
     const found = validate(values);
     setErrors(found);
-    if (Object.keys(found).length === 0) router.push("/registro/normas");
+    if (Object.keys(found).length > 0) return;
+    update({ code, unitLabel, name: values.name.trim(), email: values.email.trim(), password: values.password });
+    router.push("/registro/normas");
   }
 
   return (
