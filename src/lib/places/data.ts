@@ -50,7 +50,7 @@ export const places: NeighborhoodPlace[] = [
     image: "/images/lugares/cafe-saman.jpg",
     cover: "/images/lugares/cafe-saman.jpg",
     reviews: [
-      { name: "Camila", tower: "B", avatar: "/images/vecinos/camila.png", text: "El mejor lugar para trabajar en la tarde. Tienen enchufes en todas las mesas." },
+      { name: "Camila", tower: "B", avatar: "/images/vecinos/camila.jpg", text: "El mejor lugar para trabajar en la tarde. Tienen enchufes en todas las mesas." },
       { name: "Juan", tower: "A", avatar: "/images/vecinos/juan.png", text: "Los sábados hay pan sin gluten. Llega antes de las 10." },
     ],
     whatsapp: "573000000001",

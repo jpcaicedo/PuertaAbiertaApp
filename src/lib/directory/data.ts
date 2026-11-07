@@ -57,8 +57,8 @@ const camila: Neighbor = {
   firstName: "Camila",
   apartment: "402",
   tower: "B",
-  avatar: "/images/vecinos/camila-48.png",
-  avatarLarge: "/images/vecinos/camila-88.png",
+  avatar: "/images/vecinos/camila.jpg",
+  avatarLarge: "/images/vecinos/camila.jpg",
   verified: true,
   feminine: true,
 };

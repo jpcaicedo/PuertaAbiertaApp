@@ -67,9 +67,9 @@ export type AgendaItem = CommunityActivity | NeighborhoodEvent;
 export const AGENDA_TODAY = "2026-10-14";
 
 const laura: Person & { leader: boolean } = { name: "Laura", tower: "A", leader: true };
-const camila: Person = { name: "Camila", tower: "B", avatar: "/images/vecinos/camila.png" };
+const camila: Person = { name: "Camila", tower: "B", avatar: "/images/vecinos/camila.jpg" };
 const vecinas: Person[] = [
-  { name: "Camila", avatar: "/images/vecinos/vecina-1.png" },
+  { name: "Camila", avatar: "/images/vecinos/camila.jpg" },
   { name: "Juan", avatar: "/images/vecinos/vecina-2.png" },
   { name: "Paula", avatar: "/images/vecinos/vecina-3.png" },
 ];
