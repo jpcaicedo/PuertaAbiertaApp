@@ -18,7 +18,7 @@ npm run dev        # http://localhost:3000
 | 3 · Agenda | A1 – A13 (15) | ✅ |
 | 4 · Mapa | M1 – M3 (4) | ✅ |
 | 5 · Directorio | D1 – D15 (18) | ✅ |
-| 6 · Zonas comunes | Z1 – Z8 | pendiente |
+| 6 · Zonas comunes | Z1 – Z8 (9) | ✅ |
 | 7 · Perfil y notificaciones | P1 – P4, N1 | pendiente |
 | 8 · Administración | X1 – X8 | pendiente |
 
@@ -91,6 +91,19 @@ y son de ejemplo: hay que reemplazarlas por las reales. En Vercel, agrega la mis
 | `/directorio/marketplace/[id]/reportado` | D15 · Reporte enviado |
 | `/directorio/marketplace/vender` → `/listo` | D10 · Vender un producto · D11 · Producto publicado |
 | `/directorio/mis-publicaciones` | D12 · Mis publicaciones · D13 · ¿Ya lo vendiste? · D12b · Producto vendido |
+
+## Rutas (flujo 6)
+
+| Ruta | Frame |
+| --- | --- |
+| `/zonas-comunes` | Z1 · Zonas comunes (con la pestaña Inicio activa) |
+| `/zonas-comunes/salon-social` · `/zona-bbq` | Z2 · Detalle con aprobación |
+| `/zonas-comunes/[id]/reservar?dia=2026-10-24&franja=18:00` | Z3 · Elegir fecha y franja |
+| `/zonas-comunes/[id]/reservar/detalles?…` | Z4 · ¿Para quién es la reserva? |
+| `/zonas-comunes/[id]/reservar/enviada?…` | Z5 · Solicitud enviada (simula la aprobación a los 4 s) |
+| `/zonas-comunes/[id]/reservar/confirmada?…` | Z6 · Reserva confirmada |
+| `/zonas-comunes/turco` · `/cancha-multiple` | Z7 · Turno inmediato · Z7b · Turno confirmado (hoja) |
+| `/zonas-comunes/piscina` · `/gimnasio` | Z8 · Zona sin reserva |
 
 Las publicaciones propias y el borrador del servicio se guardan en `sessionStorage` (`src/lib/directory/store.ts`).
 
