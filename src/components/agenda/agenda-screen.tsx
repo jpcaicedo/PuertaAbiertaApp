@@ -1,0 +1,205 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Calendar, Plus, SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { HomeHeader } from "@/components/app/home-header";
+import { Screen } from "@/components/app/screen";
+import { currentResident } from "@/lib/mock-data";
+import { agendaItems, type AgendaItem, type Category, type CommunityActivity, type TimeOfDay } from "@/lib/agenda/data";
+import { parseDay, spotsLeft, timeOfDay, weekdayLong, weekdayShort, weekOf } from "@/lib/agenda/format";
+import { cn } from "@/lib/utils";
+import { ActivityListCard, NeighborhoodEventCard } from "./cards";
+import { FilterSheet, ProposeSheet, WaitlistSheets, type AgendaFilters } from "./sheets";
+
+type Props = { day: string; filters: AgendaFilters };
+
+/** Atajos de categoría visibles en la pantalla (el resto está en Filtrar). */
+const quickCategories: { id: Category; label: string }[] = [
+  { id: "deporte", label: "Deporte" },
+  { id: "mascotas", label: "Mascotas" },
+];
+
+function applyFilters(items: AgendaItem[], f: AgendaFilters) {
+  return items.filter((i) => {
+    if (f.categories.length && !i.categories.some((c) => f.categories.includes(c))) return false;
+    if (f.times.length && !f.times.includes(timeOfDay(i.start))) return false;
+    if (f.onlyWithSpots && i.kind === "actividad" && spotsLeft(i) === 0) return false;
+    return true;
+  });
+}
+
+function toQuery(day: string, f: AgendaFilters) {
+  const q = new URLSearchParams({ dia: day });
+  if (f.categories.length) q.set("cat", f.categories.join(","));
+  if (f.times.length) q.set("horario", f.times.join(","));
+  if (f.onlyWithSpots) q.set("cupos", "1");
+  return `?${q.toString()}`;
+}
+
+/** A1 · Agenda (484:2381) · A2b · Día sin actividades (484:2533) · y las hojas A2, A5, A5b y A13. */
+export function AgendaScreen({ day, filters }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [filterOpen, setFilterOpen] = React.useState(false);
+  const [proposeOpen, setProposeOpen] = React.useState(false);
+  const [waitlistFor, setWaitlistFor] = React.useState<CommunityActivity | null>(null);
+
+  const week = weekOf(day);
+  const dayItems = agendaItems.filter((i) => i.date === day).sort((a, b) => a.start.localeCompare(b.start));
+  const visible = applyFilters(dayItems, filters);
+  const hasAdvancedFilters = filters.times.length > 0 || filters.onlyWithSpots || filters.categories.length > 1;
+  const href = (d: string, f: AgendaFilters = filters) => `${pathname}${toQuery(d, f)}`;
+  const quick = (c?: Category) => href(day, { ...filters, categories: c ? [c] : [] });
+  const isQuickActive = (c?: Category) =>
+    c ? filters.categories.length === 1 && filters.categories[0] === c : filters.categories.length === 0;
+
+  return (
+    <Screen className="pb-[calc(max(22px,env(safe-area-inset-bottom))+104px)]">
+      <div className="pt-[max(40px,env(safe-area-inset-top))]">
+        <HomeHeader {...currentResident} />
+      </div>
+
+      <div className="flex flex-col items-start gap-4 px-5 pt-3">
+        {/* Título + Proponer un plan */}
+        <div className="flex w-full items-center justify-between">
+          <h1 className="text-title font-bold text-text">Agenda</h1>
+          <button
+            type="button"
+            onClick={() => setProposeOpen(true)}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-[20px] bg-brand py-2 pr-3.5 pl-3 text-caption font-semibold text-white transition-colors hover:bg-brand-hover active:scale-[0.97] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+          >
+            <Plus className="size-4" strokeWidth={2.25} aria-hidden />
+            Proponer un plan
+          </button>
+        </div>
+
+        {/* Semana */}
+        <nav aria-label="Días de la semana" className="flex w-full justify-between">
+          {week.map((d) => {
+            const selected = d === day;
+            const hasItems = agendaItems.some((i) => i.date === d);
+            return (
+              <Link
+                key={d}
+                href={href(d)}
+                scroll={false}
+                aria-current={selected ? "date" : undefined}
+                aria-label={`${weekdayLong(d)} ${parseDay(d).getDate()}${hasItems ? ", con actividades" : ""}`}
+                className={cn(
+                  "flex h-[66px] w-[46px] flex-col items-center gap-0.5 rounded-chip py-2 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand",
+                  selected ? "bg-brand text-white" : "bg-surface text-text hover:bg-brand-soft/50",
+                )}
+              >
+                <span className={cn("text-overline font-medium", !selected && "text-text-tertiary")}>{weekdayShort(d)}</span>
+                <span className="text-heading font-semibold">{parseDay(d).getDate()}</span>
+                <span aria-hidden className={cn("size-[5px] rounded-full", hasItems ? (selected ? "bg-white" : "bg-brand") : "bg-transparent")} />
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Categorías rápidas + filtro */}
+        <div className="flex items-center gap-2">
+          <QuickChip href={quick()} active={isQuickActive()}>
+            Todas
+          </QuickChip>
+          {quickCategories.map((c) => (
+            <QuickChip key={c.id} href={quick(c.id)} active={isQuickActive(c.id)}>
+              {c.label}
+            </QuickChip>
+          ))}
+          <button
+            type="button"
+            onClick={() => setFilterOpen(true)}
+            aria-label={hasAdvancedFilters ? "Filtrar actividades (filtros activos)" : "Filtrar actividades"}
+            className="relative cursor-pointer rounded-[20px] border border-border bg-surface p-[7px] text-ink transition-colors hover:border-brand/60 outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <SlidersHorizontal className="size-[18px]" strokeWidth={2} aria-hidden />
+            {hasAdvancedFilters && <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-brand ring-2 ring-bg" />}
+          </button>
+        </div>
+
+        {/* Lista o vacío */}
+        {visible.length > 0 ? (
+          <ul className="flex w-full flex-col gap-4">
+            {visible.map((item) => (
+              <li key={item.id}>
+                {item.kind === "actividad" ? (
+                  <ActivityListCard activity={item} onJoinWaitlist={setWaitlistFor} />
+                ) : (
+                  <NeighborhoodEventCard event={item} />
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : dayItems.length > 0 ? (
+          <EmptyState
+            title="Ningún plan coincide con tus filtros"
+            description="Prueba con otra categoría u horario, o quita los filtros para ver todo lo del día."
+            action={
+              <Button asChild className="rounded-[80px]">
+                <Link href={href(day, { categories: [], times: [], onlyWithSpots: false })}>Limpiar filtros</Link>
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            title={`No hay actividades el ${weekdayLong(day)}`}
+            description="¿Te animas a organizar algo? Una caminata, una tarde de juegos o una clase. Tus vecinos te lo van a agradecer."
+            action={
+              <Button asChild className="rounded-[80px]">
+                <Link href="/agenda/crear">Crear una actividad</Link>
+              </Button>
+            }
+          />
+        )}
+      </div>
+
+      <FilterSheet
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        value={filters}
+        count={(f) => applyFilters(dayItems, f).length}
+        onApply={(f) => router.replace(href(day, f), { scroll: false })}
+      />
+      <ProposeSheet open={proposeOpen} onOpenChange={setProposeOpen} />
+      <WaitlistSheets activity={waitlistFor} onClose={() => setWaitlistFor(null)} />
+    </Screen>
+  );
+}
+
+/** Chip de categoría: radio 20, padding 7/14, 13/18 SemiBold. Activo = negro. */
+function QuickChip({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      aria-current={active ? "true" : undefined}
+      className={cn(
+        "rounded-[20px] border px-3.5 py-[7px] text-caption font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand",
+        active ? "border-ink bg-ink text-white" : "border-border bg-surface text-text hover:border-brand/60",
+      )}
+    >
+      {children}
+    </Link>
+  );
+}
+
+/** Vacío (A2b): padding 40/20/20, gap 10, tile 68 (#DAE2FD, radio 40, icono 32), textos centrados de 310. */
+function EmptyState({ title, description, action }: { title: string; description: string; action: React.ReactNode }) {
+  return (
+    <div className="flex w-full flex-col items-center gap-2.5 px-5 pt-10 pb-5 text-center">
+      <span aria-hidden className="inline-flex rounded-[40px] bg-brand-soft p-[18px] text-brand">
+        <Calendar className="size-8" strokeWidth={2} />
+      </span>
+      <p className="max-w-[310px] text-heading font-semibold text-text">{title}</p>
+      <p className="max-w-[310px] text-body text-text-secondary">{description}</p>
+      <div className="w-full">{action}</div>
+    </div>
+  );
+}
+
+export type { TimeOfDay };

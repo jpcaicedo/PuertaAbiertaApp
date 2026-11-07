@@ -15,7 +15,7 @@ npm run dev        # http://localhost:3000
 | --- | --- | --- |
 | 1 · Acceso y registro | R1 – R8b (12) | ✅ |
 | 2 · Inicio | I1 – I4 | ✅ |
-| 3 · Agenda | A1 – A13 | pendiente |
+| 3 · Agenda | A1 – A13 (15) | ✅ |
 | 4 · Mapa | M1 – M3 | pendiente |
 | 5 · Directorio | D1 – D15 | pendiente |
 | 6 · Zonas comunes | Z1 – Z8 | pendiente |
@@ -43,6 +43,22 @@ npm run dev        # http://localhost:3000
 | `/inicio` | I1 · Inicio |
 | `/avisos/[id]` | I2 · Detalle del aviso · I3 · Compartir aviso (hoja inferior) |
 | — | I4 · Así le llega a un vecino sin la app → etiquetas Open Graph en `layout.tsx` + `public/og-puerta-abierta.png` |
+
+## Rutas (flujo 3)
+
+| Ruta | Frame |
+| --- | --- |
+| `/agenda?dia=2026-10-14` | A1 · Agenda · A2b (día sin actividades, p. ej. `?dia=2026-10-18`) |
+| (hojas en `/agenda`) | A2 · Filtrar · A5 · Cupos llenos · A5b · Lista de espera · A13 · Proponer un plan |
+| `/agenda/[id]` | A3 · Detalle · A4 · Inscripción confirmada · A9 · Evento del barrio · A10 · Vas al evento |
+| `/agenda/crear` | A6 · Crear actividad |
+| `/agenda/crear/enviada` | A7 · Solicitud enviada (simula la aprobación a los 4 s) |
+| `/agenda/crear/publicada` | A8 · Actividad publicada |
+| `/agenda/compartir` | A11 · Compartir un evento del barrio |
+| `/agenda/compartir/listo` | A12 · Evento compartido |
+
+Las pantallas de detalle y formularios viven en `src/app/(detail)/`, sin barra inferior.
+El estado de inscripciones, lista de espera y "Voy" se guarda en `sessionStorage` (`src/lib/agenda/store.ts`) hasta que exista la API.
 
 Las pantallas autenticadas viven en el grupo `src/app/(app)/`, cuyo layout agrega la barra inferior.
 
