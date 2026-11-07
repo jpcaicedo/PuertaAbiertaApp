@@ -14,7 +14,7 @@ npm run dev        # http://localhost:3000
 | Flujo | Pantallas | Estado |
 | --- | --- | --- |
 | 1 · Acceso y registro | R1 – R8b (12) | ✅ |
-| 2 · Inicio | I1 – I4 | pendiente |
+| 2 · Inicio | I1 – I4 | ✅ |
 | 3 · Agenda | A1 – A13 | pendiente |
 | 4 · Mapa | M1 – M3 | pendiente |
 | 5 · Directorio | D1 – D15 | pendiente |
@@ -35,6 +35,16 @@ npm run dev        # http://localhost:3000
 | `/ingresar` | R7 · Iniciar sesión · R7b · Datos incorrectos |
 | `/recuperar` | R8 · Recuperar contraseña |
 | `/recuperar/enviado?correo=…` | R8b · Enlace enviado |
+
+## Rutas (flujo 2)
+
+| Ruta | Frame |
+| --- | --- |
+| `/inicio` | I1 · Inicio |
+| `/avisos/[id]` | I2 · Detalle del aviso · I3 · Compartir aviso (hoja inferior) |
+| — | I4 · Así le llega a un vecino sin la app → etiquetas Open Graph en `layout.tsx` + `public/og-puerta-abierta.png` |
+
+Las pantallas autenticadas viven en el grupo `src/app/(app)/`, cuyo layout agrega la barra inferior.
 
 **Datos de demo** (`src/lib/mock-data.ts`):
 - Código válido: `SAM-E204-K7Q`. Cualquier otro código lleva a R2b.
