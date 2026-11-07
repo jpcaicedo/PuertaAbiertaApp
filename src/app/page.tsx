@@ -11,7 +11,7 @@ export default function BienvenidaPage() {
       <div className="relative h-[470px] w-full shrink-0">
         <Image
           src="/images/ImagenYoga8k.png"
-          alt="Vecinos escuchando un concierto acústico en la sala de un apartamento"
+          alt="Vecinos haciendo yoga en la terraza del edificio al atardecer"
           fill
           priority
           sizes="720px"
