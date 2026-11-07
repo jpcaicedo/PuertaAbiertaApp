@@ -1,26 +1,144 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* ──────────────────────────────────────────────────────────────
+   Puerta Abierta · Design tokens
+   Fuente: Figma "PI2🏠 Comunidad" › página "Prototipo final".
+   Los nombres entre comillas son las variables de Figma.
+   ────────────────────────────────────────────────────────────── */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Marca */
+  --pa-brand: #014ba3; /* "Marca/Azul Skema" */
+  --pa-brand-hover: #013f8a;
+  --pa-brand-soft: #dae2fd; /* fondo de icon tiles */
+
+  /* Superficies */
+  --pa-bg: #f7f9fb; /* fondo de pantalla */
+  --pa-surface: #ffffff; /* tarjetas, inputs */
+  --pa-ink: #191c1e; /* botón primario */
+  --pa-ink-hover: #2e3236;
+  --pa-scrim: rgb(0 0 0 / 0.45); /* fondo de hojas modales */
+
+  /* Texto */
+  --pa-text: #172033; /* texto principal */
+  --pa-text-secondary: #45464d; /* "Texto/Secundario" */
+  --pa-text-tertiary: #5a6478; /* notas al pie */
+  --pa-text-on-dark: #ffffff; /* "Texto/Sobre oscuro" */
+
+  /* Bordes */
+  --pa-border: #c6c6cd; /* inputs en reposo, switch apagado */
+  --pa-border-subtle: #f1f1f1; /* botón secundario */
+
+  /* Estados */
+  --pa-error: #ba1a1a; /* "Estado/Error" */
+  --pa-success: #1b7f4b; /* "Estado/Éxito" */
+  --pa-success-soft: #ddf3e6;
+  --pa-warning: #5a3300;
+  --pa-warning-soft: #ffe8c7;
+
+  /* Mapeo a las variables de shadcn/ui para que los componentes
+     que se agreguen con `npx shadcn add` hereden la paleta. */
+  --background: var(--pa-bg);
+  --foreground: var(--pa-text);
+  --card: var(--pa-surface);
+  --card-foreground: var(--pa-text);
+  --popover: var(--pa-surface);
+  --popover-foreground: var(--pa-text);
+  --primary: var(--pa-ink);
+  --primary-foreground: var(--pa-text-on-dark);
+  --secondary: var(--pa-surface);
+  --secondary-foreground: var(--pa-text);
+  --muted: var(--pa-brand-soft);
+  --muted-foreground: var(--pa-text-secondary);
+  --accent: var(--pa-brand-soft);
+  --accent-foreground: var(--pa-brand);
+  --destructive: var(--pa-error);
+  --border: var(--pa-border);
+  --input: var(--pa-border);
+  --ring: var(--pa-brand);
+  --radius: 12px;
 }
 
 @theme inline {
+  /* Colores → bg-brand, text-text-secondary, border-border… */
+  --color-brand: var(--pa-brand);
+  --color-brand-hover: var(--pa-brand-hover);
+  --color-brand-soft: var(--pa-brand-soft);
+  --color-bg: var(--pa-bg);
+  --color-surface: var(--pa-surface);
+  --color-ink: var(--pa-ink);
+  --color-ink-hover: var(--pa-ink-hover);
+  --color-scrim: var(--pa-scrim);
+  --color-text: var(--pa-text);
+  --color-text-secondary: var(--pa-text-secondary);
+  --color-text-tertiary: var(--pa-text-tertiary);
+  --color-text-on-dark: var(--pa-text-on-dark);
+  --color-border-subtle: var(--pa-border-subtle);
+  --color-error: var(--pa-error);
+  --color-success: var(--pa-success);
+  --color-success-soft: var(--pa-success-soft);
+  --color-warning: var(--pa-warning);
+  --color-warning-soft: var(--pa-warning-soft);
+
+  /* shadcn */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Tipografía: Plus Jakarta Sans */
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  /* Escala tipográfica (tamaño / interlineado) */
+  --text-display: 28px; /* Título bienvenida · Bold */
+  --text-display--line-height: 34px;
+  --text-title: 22px; /* Título de pantalla · Bold */
+  --text-title--line-height: 28px;
+  --text-heading: 18px; /* Título de hoja · SemiBold */
+  --text-heading--line-height: 24px;
+  --text-body: 15px; /* Párrafos, inputs, títulos de tarjeta */
+  --text-body--line-height: 22px;
+  --text-label: 14px; /* Botones · Medium */
+  --text-label--line-height: 20px;
+  --text-caption: 13px; /* Etiquetas, ayudas, errores */
+  --text-caption--line-height: 18px;
+  --text-overline: 12px; /* Eyebrow · SemiBold */
+  --text-overline--line-height: 16px;
+
+  /* Radios */
+  --radius-field: 12px; /* inputs, botón cámara, tile mediano */
+  --radius-chip: 14px; /* logo, banner de éxito */
+  --radius-card: 16px; /* tarjetas, tile grande, botón link */
+  --radius-panel: 20px; /* tarjeta administración */
+  --radius-sheet: 28px; /* hojas inferiores */
+
+  /* Sombras */
+  --shadow-button: 0 4px 8px rgb(0 0 0 / 0.05);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+  }
 }
