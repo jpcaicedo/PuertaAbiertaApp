@@ -122,7 +122,7 @@ export const agendaItems: AgendaItem[] = [
     end: "21:00",
     place: "Salón social, Torre A",
     categories: ["comida"],
-    image: "/images/actividades/cata-cafe.jpg",
+    image: "/images/actividades/cata-cafe-valluno.jpg",
     imageAlt: "Vecinos en una cata de café en el salón social",
     organizer: { name: "Andrés", tower: "C" },
     capacity: 12,
