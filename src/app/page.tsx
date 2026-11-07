@@ -10,16 +10,17 @@ export default function BienvenidaPage() {
       {/* Foto 390×470 */}
       <div className="relative h-[470px] w-full shrink-0">
         <Image
-          src="/images/bienvenida.png"
-          alt="Vecinos practicando yoga en la terraza del edificio al atardecer"
+          src="/images/bienvenida.jpg"
+          alt="Vecinos escuchando un concierto acústico en la sala de un apartamento"
           fill
           priority
-          sizes="(max-width: 430px) 100vw, 430px"
-          className="object-cover"
+          sizes="720px"
+          quality={90}
+          className="object-cover object-[70%_center]"
         />
         {/* Logo: chip blanco, radio 14, padding 8/12, 20px del borde, 52px arriba */}
         <div className="absolute top-[max(52px,calc(env(safe-area-inset-top)+8px))] left-5 rounded-chip bg-surface px-3 py-2">
-          <Image src="/images/logo-skema.png" alt="Skema Promotora" width={48} height={32} className="h-8 w-12 object-contain" />
+          <Image src="/images/logo-skema.svg" alt="Skema Promotora" width={48} height={32} unoptimized className="h-8 w-12 object-contain" />
         </div>
       </div>
 
