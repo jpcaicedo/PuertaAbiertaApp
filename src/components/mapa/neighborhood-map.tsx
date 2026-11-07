@@ -2,6 +2,7 @@
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import * as React from "react";
+import { useTheme } from "next-themes";
 import Map, {
   AttributionControl,
   Marker,
@@ -39,6 +40,8 @@ export default function NeighborhoodMap({
 }: NeighborhoodMapProps) {
   const mapRef = React.useRef<MapRef>(null);
   const [zoom, setZoom] = React.useState(MAP_DEFAULT_ZOOM);
+  // En modo oscuro se usa el estilo oscuro de Mapbox.
+  const { resolvedTheme } = useTheme();
   // Lejos, los nombres de los pines se tapan entre sí: se muestran solo los iconos (salvo el seleccionado).
   const showLabels = zoom >= LABELS_MIN_ZOOM;
 
@@ -63,7 +66,7 @@ export default function NeighborhoodMap({
         latitude: RESIDENCE.coords.lat,
         zoom: MAP_DEFAULT_ZOOM,
       }}
-      mapStyle="mapbox://styles/mapbox/streets-v12"
+      mapStyle={resolvedTheme === "dark" ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
       style={{ position: "absolute", inset: 0 }}
       // Mapa de barrio: sin rotación ni inclinación, que en el celular confunden.
       dragRotate={false}

@@ -23,7 +23,7 @@ const buttonVariants = cva(
       variant: {
         primary: "h-[47px] rounded-[48px] bg-ink text-text-on-dark hover:bg-ink-hover",
         secondary:
-          "h-[47px] rounded-[43px] border border-border-subtle bg-surface text-text shadow-button hover:bg-[#f4f5f7]",
+          "h-[47px] rounded-[43px] border border-border-subtle bg-surface text-text shadow-button hover:bg-[#f4f5f7] dark:hover:bg-surface-muted",
         link: "h-[52px] rounded-card text-brand hover:text-brand-hover hover:bg-brand-soft/40",
       },
     },

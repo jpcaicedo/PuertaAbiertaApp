@@ -98,7 +98,7 @@ export function RequestsScreen({ filter }: { filter: RequestFilter }) {
               className={cn(
                 "rounded-[18px] border px-3.5 py-[7px] text-label font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand",
                 filter === c.id
-                  ? "border-text bg-text text-white"
+                  ? "border-text bg-text text-text-on-dark"
                   : "border-option-border bg-surface text-text hover:border-brand/40",
               )}
             >

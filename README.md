@@ -173,3 +173,10 @@ Clases disponibles, por ejemplo: `bg-brand`, `bg-brand-soft`, `text-text-seconda
 - **Exportar en alta resolución:** `public/images/bienvenida.png` (foto R1), `logo-skema.png` y `avatar-sandra.png` están a 1x. Hay que exportarlos desde Figma a 2x/3x, o el logo en SVG, y reemplazarlos con el mismo nombre.
 - `/politica-de-datos` todavía no existe.
 - Los números de WhatsApp y teléfono de la administración son placeholders.
+
+## Modo oscuro
+
+- Se activa en **Perfil › Configuración › Modo oscuro**. Por defecto sigue el tema del sistema (`prefers-color-scheme`) y la elección se guarda en `localStorage` (`pa-theme`) con [`next-themes`](https://github.com/pacocoursey/next-themes).
+- Los colores salen de los mismos tokens: el bloque `.dark { … }` de `src/app/globals.css` los reasigna, así que los componentes casi no llevan clases `dark:`.
+- En modo oscuro el mapa usa el estilo `mapbox/dark-v11`.
+

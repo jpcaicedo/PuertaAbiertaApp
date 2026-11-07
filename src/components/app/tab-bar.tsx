@@ -30,7 +30,7 @@ export function TabBar() {
       aria-label="Navegación principal"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[var(--tabbar-offset)]"
     >
-      <ul className="pointer-events-auto mx-auto flex h-16 max-w-[398px] items-center justify-between rounded-[32px] bg-surface px-2.5 shadow-nav">
+      <ul className="pointer-events-auto mx-auto flex h-16 max-w-[398px] items-center justify-between rounded-[32px] bg-surface px-2.5 shadow-nav dark:ring-1 dark:ring-white/10">
         {tabs.map(({ href, label, icon: Icon, match }) => {
           const active = match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
           return (

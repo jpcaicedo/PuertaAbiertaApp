@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Modo oscuro por clase: next-themes pone `class="dark"` en <html> (ver ThemeProvider). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ──────────────────────────────────────────────────────────────
    Puerta Abierta · Design tokens
    Fuente: Figma "PI2🏠 Comunidad" › página "Prototipo final".
@@ -96,6 +99,60 @@
   --input: var(--pa-border);
   --ring: var(--pa-brand);
   --radius: 12px;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Modo oscuro: solo se reasignan los tokens; los componentes no cambian.
+   Contrastes AA: texto ≥ 4.5:1 sobre fondo y superficie; blanco sobre azul 4.5:1.
+   ────────────────────────────────────────────────────────────── */
+.dark {
+  color-scheme: dark;
+
+  --pa-brand: #2f74dc; /* fondos azules con texto blanco */
+  --pa-brand-hover: #3b82e8;
+  --pa-brand-text: #8cb8ff; /* texto e iconos azules sobre fondos oscuros */
+  --pa-brand-soft: #1d2f4d;
+
+  --pa-bg: #0f1419;
+  --pa-surface: #1a2029;
+  --pa-ink: #e8edf5; /* el botón primario se invierte: claro con texto oscuro */
+  --pa-ink-hover: #ffffff;
+  --pa-scrim: rgb(0 0 0 / 0.6);
+
+  --pa-text: #e8edf5;
+  --pa-text-secondary: #b4bccb;
+  --pa-text-tertiary: #98a2b3;
+  --pa-text-on-dark: #0f1419;
+
+  --pa-border: #3a4452;
+  --pa-border-subtle: #2a323e;
+
+  --pa-error: #ff8a80;
+  --pa-success: #3fb27f;
+  --pa-success-soft: #163527;
+  --pa-warning: #f5c37a;
+  --pa-warning-soft: #3a2a14;
+
+  --pa-surface-muted: #222a35;
+  --pa-preview: #2a2620;
+  --pa-handle: #3a4452;
+
+  --pa-illustration: #3a2a14;
+  --pa-illustration-ink: #f0a347;
+  --pa-option-border: #2a323e;
+  --pa-option-blue: #1b2b45;
+  --pa-option-orange: #3a2a14;
+  --pa-note: #222a35;
+  --pa-step-pending: #3a4452;
+
+  --pa-segment: #222a35;
+  --pa-toast: #2a3342;
+
+  --pa-status-success-soft: #163527;
+  --pa-status-success: #5fd39b;
+  --pa-status-pending: #f0b45a;
+  --pa-text-muted: #8b95a5;
+  --pa-unread: #151c25;
 }
 
 @theme inline {
@@ -214,6 +271,17 @@
   }
   body {
     @apply min-h-dvh bg-bg text-text font-sans antialiased;
+  }
+}
+
+/* En modo oscuro el azul de marca como texto se aclara para mantener el contraste.
+   Los fondos `bg-brand` siguen con el azul que soporta texto blanco. */
+@layer utilities {
+  .dark .text-brand {
+    color: var(--pa-brand-text);
+  }
+  .dark .hover\:text-brand-hover:hover {
+    color: #b3d0ff;
   }
 }
 
