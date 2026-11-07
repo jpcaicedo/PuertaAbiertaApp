@@ -13,7 +13,7 @@ export default function InicioPage() {
   const [latestNotice] = getNotices(now);
 
   return (
-    <Screen className="pb-[calc(max(22px,env(safe-area-inset-bottom))+104px)]">
+    <Screen className="pb-tabbar">
       {/* 40px de barra de estado + encabezado de 64 */}
       <div className="pt-[max(40px,env(safe-area-inset-top))]">
         <HomeHeader {...currentResident} />

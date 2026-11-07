@@ -37,7 +37,7 @@ export function ProfileScreen() {
   const [rulesOpen, setRulesOpen] = React.useState(false);
 
   return (
-    <Screen className="pb-[calc(max(22px,env(safe-area-inset-bottom))+104px)]">
+    <Screen className="pb-tabbar">
       <div className="flex flex-col items-start gap-4 px-5 pt-[max(72px,calc(env(safe-area-inset-top)+24px))]">
         <h1 className="text-headline font-bold text-text">Perfil</h1>
 

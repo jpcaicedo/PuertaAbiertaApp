@@ -18,6 +18,8 @@ const tabs: Tab[] = [
 /**
  * Barra inferior flotante (Figma "Barra inferior", 476:967).
  * 358×64, radio 32, 16px de los lados y 22px del borde inferior, sombra 0 6 10 / 12 %.
+ * En iPhone se despega de la zona segura (indicador de inicio / barra de Safari) con
+ * `--tabbar-offset`; el contenedor ocupa el ancho completo pero no captura toques.
  * Pestañas de 66×52: icono 20 + etiqueta 12/16 (activa: azul SemiBold · inactiva: #5A6478 Medium).
  */
 export function TabBar() {
@@ -26,9 +28,9 @@ export function TabBar() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="fixed inset-x-0 bottom-[max(22px,env(safe-area-inset-bottom))] z-40 mx-auto w-[calc(100%-32px)] max-w-[398px]"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pb-[var(--tabbar-offset)]"
     >
-      <ul className="flex h-16 items-center justify-between rounded-[32px] bg-surface px-2.5 shadow-nav">
+      <ul className="pointer-events-auto mx-auto flex h-16 max-w-[398px] items-center justify-between rounded-[32px] bg-surface px-2.5 shadow-nav">
         {tabs.map(({ href, label, icon: Icon, match }) => {
           const active = match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
           return (

@@ -54,7 +54,7 @@ export function AdminHome() {
   const notices = [...state.notices, ...activeNotices];
 
   return (
-    <Screen className="pb-[calc(max(22px,env(safe-area-inset-bottom))+104px)]">
+    <Screen className="pb-tabbar">
       {/* Encabezado: 64 de alto a 40 del borde */}
       <header className="mt-[max(40px,env(safe-area-inset-top))] flex h-16 shrink-0 items-center gap-3 px-5">
         <span aria-hidden className="inline-flex rounded-field bg-brand p-[9px] text-white">

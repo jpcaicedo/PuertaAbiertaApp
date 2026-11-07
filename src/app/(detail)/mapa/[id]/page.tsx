@@ -76,7 +76,7 @@ export default async function LugarPage({ params }: Props) {
 
       {/* Barra de acción con nota: padding 12/20/24, gap 6 */}
       <div aria-hidden className="h-[132px] shrink-0" />
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] flex-col items-center gap-1.5 bg-surface px-5 pt-3 pb-[max(24px,env(safe-area-inset-bottom))] shadow-bar">
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] flex-col items-center gap-1.5 bg-surface px-5 pt-3 pb-[max(24px,calc(var(--safe-bottom)+12px))] shadow-bar">
         <div className="flex w-full gap-2">
           <Button asChild variant="secondary" className="h-[52px] flex-1">
             <a href={directions} target="_blank" rel="noopener noreferrer">

@@ -95,7 +95,7 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
         <div ref={endRef} />
       </div>
 
-      <form onSubmit={send} className="flex shrink-0 items-center gap-2.5 px-4 pt-2 pb-[max(30px,env(safe-area-inset-bottom))]">
+      <form onSubmit={send} className="flex shrink-0 items-center gap-2.5 px-4 pt-2 pb-[max(30px,calc(var(--safe-bottom)+12px))]">
         <label htmlFor="mensaje" className="sr-only">
           Escribe un mensaje
         </label>

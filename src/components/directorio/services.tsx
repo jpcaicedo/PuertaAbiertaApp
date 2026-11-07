@@ -22,7 +22,7 @@ export function DirectoryHeader({
   children: React.ReactNode;
 }) {
   return (
-    <Screen className="pb-[calc(max(22px,env(safe-area-inset-bottom))+104px)]">
+    <Screen className="pb-tabbar">
       <div className="pt-[max(40px,env(safe-area-inset-top))]">
         <HomeHeader {...currentResident} />
       </div>
@@ -127,7 +127,7 @@ export function ServiceSearchScreen({ initialQuery }: { initialQuery: string }) 
   const results = searchServices(query);
 
   return (
-    <Screen className="pb-[calc(max(22px,env(safe-area-inset-bottom))+104px)]">
+    <Screen className="pb-tabbar">
       <SearchBar backHref="/directorio" value={query} onChange={setQuery} placeholder="Buscar vecinos o servicios" />
       <div className="flex flex-col items-start gap-3 px-5 pt-4">
         {results.length > 0 ? (

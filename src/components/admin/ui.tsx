@@ -46,7 +46,7 @@ export function AdminActionBar({ children }: { children: React.ReactNode }) {
   return (
     <>
       <div aria-hidden className="h-[140px] shrink-0" />
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] flex-col gap-2 border-t border-option-border bg-surface px-5 pt-3 pb-[max(28px,env(safe-area-inset-bottom))]">
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] flex-col gap-2 border-t border-option-border bg-surface px-5 pt-3 pb-[max(28px,calc(var(--safe-bottom)+12px))]">
         {children}
       </div>
     </>
