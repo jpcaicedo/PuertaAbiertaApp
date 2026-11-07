@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/app/form-field";
 import { IconTile } from "@/components/app/icon-tile";
 import { Screen, ScreenActions, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from "@/components/app/screen";
-import { lookupResidenceCode } from "@/lib/mock-data";
+import { checkResidenceCode } from "@/lib/auth/actions";
+import { useRegistration } from "../registration-context";
 
 const INVALID_MESSAGE = "Este código no existe o ya fue usado. Revisa letras y números, por ejemplo la O y el 0.";
 
@@ -25,15 +26,20 @@ export default function CodigoPage() {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [code, setCode] = React.useState("");
   const [invalid, setInvalid] = React.useState(false);
+  const [checking, startCheck] = React.useTransition();
+  const { update } = useRegistration();
 
   function validate(e: React.FormEvent) {
     e.preventDefault();
-    const unit = lookupResidenceCode(code);
-    if (!unit) {
-      setInvalid(true);
-      return;
-    }
-    router.push(`/registro/cuenta?codigo=${encodeURIComponent(code)}`);
+    startCheck(async () => {
+      const result = await checkResidenceCode(code);
+      if (!result.ok) {
+        setInvalid(true);
+        return;
+      }
+      update({ code, unitLabel: result.unitLabel });
+      router.push(`/registro/cuenta?codigo=${encodeURIComponent(code)}`);
+    });
   }
 
   function retry() {
@@ -88,8 +94,8 @@ export default function CodigoPage() {
             </>
           ) : (
             <>
-              <Button type="submit" disabled={code.length < 12}>
-                Validar código
+              <Button type="submit" disabled={code.length < 12 || checking}>
+                {checking ? "Validando…" : "Validar código"}
               </Button>
               <Button asChild variant="link">
                 <Link href="/registro/ayuda">No tengo código</Link>

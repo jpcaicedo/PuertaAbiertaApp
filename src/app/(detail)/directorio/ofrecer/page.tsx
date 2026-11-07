@@ -11,7 +11,7 @@ import { Screen, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from
 import { ActionBar } from "@/components/agenda/primitives";
 import { FieldIcon } from "@/components/agenda/fields";
 import { ChoiceChips } from "@/components/directorio/ui";
-import { currentResident } from "@/lib/mock-data";
+import { useCurrentUser } from "@/components/app/current-user";
 import { serviceCategories, type ServiceCategory } from "@/lib/directory/data";
 import { directoryActions, useDirectoryState, type ServiceDraft } from "@/lib/directory/store";
 
@@ -29,6 +29,7 @@ const empty: ServiceDraft = {
 
 /** D5 · Publicar servicio (484:3846) → D6 vista previa. */
 export default function OfrecerServicioPage() {
+  const user = useCurrentUser();
   const router = useRouter();
   const { serviceDraft } = useDirectoryState();
   const [form, setForm] = React.useState<ServiceDraft>(empty);
@@ -117,7 +118,7 @@ export default function OfrecerServicioPage() {
             <ToggleItem
               id="mostrar-apto"
               title="Mostrar mi apartamento"
-              hint={currentResident.unitLabel}
+              hint={user.unitLabel}
               checked={form.showApartment}
               onChange={(v) => set("showApartment", v)}
             />

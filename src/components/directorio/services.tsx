@@ -6,7 +6,6 @@ import { ChevronRight, Phone, Plus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HomeHeader } from "@/components/app/home-header";
 import { Screen } from "@/components/app/screen";
-import { currentResident } from "@/lib/mock-data";
 import { formatRating, searchServices, services, type NeighborService, type ServiceCategory } from "@/lib/directory/data";
 import { Avatar, DirectoryTabs, FilterChips, Rating, SearchBar, SearchLink, VerifiedMark } from "./ui";
 
@@ -24,7 +23,7 @@ export function DirectoryHeader({
   return (
     <Screen className="pb-tabbar">
       <div className="pt-[max(40px,env(safe-area-inset-top))]">
-        <HomeHeader {...currentResident} />
+        <HomeHeader />
       </div>
       <div className="flex flex-col items-start gap-3.5 px-5 pt-3">
         <div className="flex w-full items-center justify-between">

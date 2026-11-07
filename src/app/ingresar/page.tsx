@@ -2,18 +2,31 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input, PasswordInput } from "@/components/ui/input";
 import { FormField } from "@/components/app/form-field";
 import { Screen, ScreenActions, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from "@/components/app/screen";
-import { demoUser } from "@/lib/mock-data";
+import { signIn } from "@/lib/auth/actions";
 
 const LOGIN_ERROR = "El correo o la contraseña no coinciden. Revisa los datos o recupera tu contraseña.";
 
+/** Solo rutas internas: evita que ?siguiente= lleve a otro sitio. */
+const safeNext = (next: string | null) => (next && next.startsWith("/") && !next.startsWith("//") ? next : "/inicio");
+
 /** R7 · Iniciar sesión (484:2168) y R7b · Datos incorrectos (484:2190) */
 export default function IngresarPage() {
+  return (
+    <React.Suspense>
+      <IngresarForm />
+    </React.Suspense>
+  );
+}
+
+function IngresarForm() {
   const router = useRouter();
+  const next = safeNext(useSearchParams().get("siguiente"));
+  const [loading, startLogin] = React.useTransition();
   const emailRef = React.useRef<HTMLInputElement>(null);
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -28,10 +41,15 @@ export default function IngresarPage() {
       emailRef.current?.focus();
       return;
     }
-    // TODO: reemplazar por la llamada real de autenticación.
-    const ok = email.trim().toLowerCase() === demoUser.email && password === demoUser.password;
-    if (ok) router.push("/inicio");
-    else setFailed(true);
+    startLogin(async () => {
+      const { ok } = await signIn(email, password);
+      if (!ok) {
+        setFailed(true);
+        return;
+      }
+      router.replace(next);
+      router.refresh();
+    });
   }
 
   const clearError = () => failed && setFailed(false);
@@ -86,8 +104,8 @@ export default function IngresarPage() {
         </ScreenBody>
 
         <ScreenActions>
-          <Button type="submit" disabled={!failed && (!email || !password)}>
-            {failed ? "Intentar de nuevo" : "Entrar"}
+          <Button type="submit" disabled={loading || (!failed && (!email || !password))}>
+            {loading ? "Entrando…" : failed ? "Intentar de nuevo" : "Entrar"}
           </Button>
         </ScreenActions>
       </form>

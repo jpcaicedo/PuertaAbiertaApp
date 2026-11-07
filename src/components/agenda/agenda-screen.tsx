@@ -7,7 +7,6 @@ import { Calendar, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HomeHeader } from "@/components/app/home-header";
 import { Screen } from "@/components/app/screen";
-import { currentResident } from "@/lib/mock-data";
 import { agendaItems, type AgendaItem, type Category, type CommunityActivity, type TimeOfDay } from "@/lib/agenda/data";
 import { parseDay, spotsLeft, timeOfDay, weekdayLong, weekdayShort, weekOf } from "@/lib/agenda/format";
 import { cn } from "@/lib/utils";
@@ -59,7 +58,7 @@ export function AgendaScreen({ day, filters }: Props) {
   return (
     <Screen className="pb-tabbar">
       <div className="pt-[max(40px,env(safe-area-inset-top))]">
-        <HomeHeader {...currentResident} />
+        <HomeHeader />
       </div>
 
       <div className="flex flex-col items-start gap-4 px-5 pt-3">

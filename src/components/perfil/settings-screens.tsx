@@ -1,11 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Screen, ScreenHeader } from "@/components/app/screen";
-import { currentResident } from "@/lib/mock-data";
+import { useCurrentUser, UserAvatar } from "@/components/app/current-user";
 import { notifyOptions, privacyOptions } from "@/lib/profile/data";
 import { profileActions, useProfileState } from "@/lib/profile/store";
 import { useVisibleName } from "./profile-screen";
@@ -25,6 +24,7 @@ function Toggle({ id, checked, onChange }: { id: string; checked: boolean; onCha
 
 /** P3 · Qué ven tus vecinos (484:5500) */
 export function PrivacyScreen() {
+  const user = useCurrentUser();
   const { privacy } = useProfileState();
   const visibleName = useVisibleName();
 
@@ -39,13 +39,7 @@ export function PrivacyScreen() {
 
         {/* Vista previa: radio 16, padding 14/16, avatar 44 */}
         <div aria-live="polite" className="flex w-full items-center gap-3 rounded-card bg-option-blue px-4 py-3.5">
-          <Image
-            src={currentResident.avatar}
-            alt=""
-            width={44}
-            height={44}
-            className="size-11 shrink-0 rounded-full object-cover"
-          />
+          <UserAvatar user={user} size={44} />
           <span className="flex min-w-0 flex-col">
             <span className="text-caption font-medium text-brand">Así te ven ahora</span>
             <span className="text-callout font-bold text-text">{visibleName}</span>

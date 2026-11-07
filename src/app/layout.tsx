@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { CurrentUserProvider } from "@/components/app/current-user";
 import { ThemeProvider } from "@/components/app/theme-provider";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import "./globals.css";
 
 /** Plus Jakarta Sans variable (200–800), self-hosted: sin dependencia de Google Fonts en runtime. */
@@ -34,16 +36,20 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  // Color de la barra del navegador según el tema del sistema (mismo valor que --pa-bg).
+  // La app abre siempre en claro: barra del navegador con el fondo claro (--pa-bg).
   themeColor: "#f7f9fb",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Vecino con sesión (Supabase) o Sandra en modo demo. Lo usan el encabezado, Perfil, etc.
+  const user = await getCurrentUser();
   return (
     // suppressHydrationWarning: next-themes agrega la clase `dark` antes de hidratar.
     <html lang="es" className={jakarta.variable} suppressHydrationWarning>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <CurrentUserProvider user={user}>{children}</CurrentUserProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

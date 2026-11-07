@@ -17,6 +17,8 @@ import { CheckboxField } from "@/components/app/controls";
 import { IconTile } from "@/components/app/icon-tile";
 import { Screen, ScreenActions, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from "@/components/app/screen";
 import { communityRules } from "@/lib/community";
+import { registerResident } from "@/lib/auth/actions";
+import { isCompleteDraft, useRegistration } from "../registration-context";
 
 /** R5 · Normas y datos personales (484:2036) + R5b · No acepta (484:2080) */
 export default function NormasPage() {
@@ -24,7 +26,29 @@ export default function NormasPage() {
   const [acceptsRules, setAcceptsRules] = React.useState(false);
   const [acceptsData, setAcceptsData] = React.useState(false);
   const [declineOpen, setDeclineOpen] = React.useState(false);
-  const canContinue = acceptsRules && acceptsData;
+  const [error, setError] = React.useState<string>();
+  const [creating, startCreate] = React.useTransition();
+  const { draft, update } = useRegistration();
+  const canContinue = acceptsRules && acceptsData && !creating;
+
+  /** Con las dos autorizaciones se crea la cuenta (R4 + R5) y se sigue al perfil (R6). */
+  function accept() {
+    if (!isCompleteDraft(draft)) {
+      // Se recargó la página y se perdieron los datos de R4: hay que volver a empezar.
+      router.replace("/registro/codigo");
+      return;
+    }
+    setError(undefined);
+    startCreate(async () => {
+      const result = await registerResident(draft);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      update({ password: "" });
+      router.replace("/registro/perfil");
+    });
+  }
 
   return (
     <Screen>
@@ -51,8 +75,13 @@ export default function NormasPage() {
       </ScreenBody>
 
       <ScreenActions>
-        <Button disabled={!canContinue} onClick={() => router.push("/registro/perfil")}>
-          Aceptar y continuar
+        {error && (
+          <p role="alert" className="text-caption text-error">
+            {error}
+          </p>
+        )}
+        <Button disabled={!canContinue} onClick={accept}>
+          {creating ? "Creando tu cuenta…" : "Aceptar y continuar"}
         </Button>
         <Button variant="link" onClick={() => setDeclineOpen(true)}>
           No acepto
