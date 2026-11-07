@@ -16,7 +16,7 @@ npm run dev        # http://localhost:3000
 | 1 · Acceso y registro | R1 – R8b (12) | ✅ |
 | 2 · Inicio | I1 – I4 | ✅ |
 | 3 · Agenda | A1 – A13 (15) | ✅ |
-| 4 · Mapa | M1 – M3 | pendiente |
+| 4 · Mapa | M1 – M3 (4) | ✅ |
 | 5 · Directorio | D1 – D15 | pendiente |
 | 6 · Zonas comunes | Z1 – Z8 | pendiente |
 | 7 · Perfil y notificaciones | P1 – P4, N1 | pendiente |
@@ -56,6 +56,25 @@ npm run dev        # http://localhost:3000
 | `/agenda/crear/publicada` | A8 · Actividad publicada |
 | `/agenda/compartir` | A11 · Compartir un evento del barrio |
 | `/agenda/compartir/listo` | A12 · Evento compartido |
+
+## Rutas (flujo 4)
+
+| Ruta | Frame |
+| --- | --- |
+| `/mapa` | M1 · Mapa (plano ilustrado + pines + lugar destacado) |
+| `/mapa/buscar?q=café` | M2 · Buscar lugares · M2b · Sin resultados (p. ej. `?q=sushi`) |
+| `/mapa/[id]` | M3 · Detalle del lugar |
+
+**Mapa real con Mapbox.** Copia `.env.example` como `.env.local` y pon tu token público:
+
+```bash
+NEXT_PUBLIC_MAPBOX_TOKEN=pk.xxxxx
+```
+
+Con token, M1 muestra Mapbox (`streets-v12`, centrado en Cali, zoom 13) con los pines como `<Marker>`.
+Sin token, usa el plano ilustrado del diseño. Las coordenadas de los lugares están en `src/lib/places/data.ts`
+y son de ejemplo: hay que reemplazarlas por las reales. En Vercel, agrega la misma variable en
+*Settings → Environment Variables*.
 
 Las pantallas de detalle y formularios viven en `src/app/(detail)/`, sin barra inferior.
 El estado de inscripciones, lista de espera y "Voy" se guarda en `sessionStorage` (`src/lib/agenda/store.ts`) hasta que exista la API.

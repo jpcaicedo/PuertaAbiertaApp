@@ -125,7 +125,7 @@ export const nextActivity: Activity = {
   organizer: "Laura",
   spotsLeft: 4,
   capacity: 20,
-  image: "/images/actividades/yoga-atardecer.jpg",
+  image: "/images/ImagenYoga8k.png",
   imageAlt: "Vecinos haciendo yoga en la terraza al atardecer",
 };
 
