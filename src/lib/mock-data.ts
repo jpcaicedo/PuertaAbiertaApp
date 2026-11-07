@@ -42,7 +42,7 @@ export const demoUser = {
   email: "sandra.rojas@gmail.com",
   password: "vecinos2026",
   bio: "Me encanta el yoga y tengo un beagle que se llama Toby.",
-  avatar: "/images/avatar-sandra.png",
+  avatar: "/images/avatar-sandra.jpg",
 };
 
 /* ────────────────────────── Flujo 2 · Inicio ────────────────────────── */
@@ -60,7 +60,7 @@ export const currentResident = {
   tower: "E",
   apartment: "204",
   unitLabel: "Torre E · Apto 204",
-  avatar: "/images/avatar-sandra.png",
+  avatar: "/images/avatar-sandra.jpg",
 };
 
 export type Notice = {
