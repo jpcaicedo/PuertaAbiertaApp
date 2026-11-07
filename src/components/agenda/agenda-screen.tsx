@@ -180,7 +180,7 @@ function QuickChip({ href, active, children }: { href: string; active: boolean; 
       aria-current={active ? "true" : undefined}
       className={cn(
         "rounded-[20px] border px-3.5 py-[7px] text-caption font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand",
-        active ? "border-ink bg-ink text-white" : "border-border bg-surface text-text hover:border-brand/60",
+        active ? "border-ink bg-ink text-text-on-dark" : "border-border bg-surface text-text hover:border-brand/60",
       )}
     >
       {children}

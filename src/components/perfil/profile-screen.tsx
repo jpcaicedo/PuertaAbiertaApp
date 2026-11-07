@@ -18,6 +18,7 @@ import { currentResident } from "@/lib/mock-data";
 import { useDirectoryState } from "@/lib/directory/store";
 import { activitySummary, useMyActivity } from "@/lib/profile/activity";
 import { useProfileState } from "@/lib/profile/store";
+import { ThemeRow } from "./theme-row";
 import { ListGroup, NavRow, SectionLabel } from "./ui";
 
 /** Lo que ven los vecinos según P3: "Sandra, Torre E" (+ ", apto 204"). */
@@ -93,6 +94,7 @@ export function ProfileScreen() {
             title="Notificaciones"
             subtitle="Elige qué te avisamos"
           />
+          <ThemeRow />
           <NavRow
             onClick={() => setRulesOpen(true)}
             icon={Book}

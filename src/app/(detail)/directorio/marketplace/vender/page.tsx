@@ -88,7 +88,7 @@ export default function VenderProductoPage() {
                           type="button"
                           onClick={() => setPhotos((p) => p.filter((_, j) => j !== i))}
                           aria-label={`Quitar foto ${i + 1}`}
-                          className="absolute top-1 right-1 grid size-6 cursor-pointer place-items-center rounded-full bg-ink/70 text-white"
+                          className="absolute top-1 right-1 grid size-6 cursor-pointer place-items-center rounded-full bg-ink/70 text-text-on-dark"
                         >
                           <X className="size-3.5" strokeWidth={2.5} aria-hidden />
                         </button>

@@ -34,7 +34,7 @@ export function HomeHeader({ firstName, unitLabel, avatar, hasUnread = false }: 
           <Bell className="size-[22px]" strokeWidth={2} aria-hidden />
           {hasUnread && <span className="absolute top-2 right-2.5 size-2 rounded-full bg-error ring-2 ring-bg" />}
         </Link>
-        <Image src="/images/logo-skema.svg" alt="Skema" width={42} height={28} unoptimized className="h-7 w-[42px] object-contain" />
+        <Image src="/images/logo-skema.svg" alt="Skema" width={42} height={28} unoptimized className="h-7 w-[42px] object-contain dark:rounded-md dark:bg-white dark:p-0.5" />
       </div>
     </header>
   );

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { ThemeProvider } from "@/components/app/theme-provider";
 import "./globals.css";
 
 /** Plus Jakarta Sans variable (200–800), self-hosted: sin dependencia de Google Fonts en runtime. */
@@ -33,13 +34,20 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f7f9fb",
+  // Color de la barra del navegador según el tema del sistema (mismo valor que --pa-bg).
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f9fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1419" },
+  ],
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={jakarta.variable}>
-      <body>{children}</body>
+    // suppressHydrationWarning: next-themes agrega la clase `dark` antes de hidratar.
+    <html lang="es" className={jakarta.variable} suppressHydrationWarning>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

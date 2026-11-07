@@ -98,7 +98,7 @@ export function FilterChips<T extends string>({
           onClick={() => onChange(o.id)}
           className={cn(
             "shrink-0 cursor-pointer rounded-card border px-3 py-1.5 text-overline font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand",
-            value === o.id ? "border-ink bg-ink text-white" : "border-border bg-surface text-text hover:border-brand/60",
+            value === o.id ? "border-ink bg-ink text-text-on-dark" : "border-border bg-surface text-text hover:border-brand/60",
           )}
         >
           {o.label}

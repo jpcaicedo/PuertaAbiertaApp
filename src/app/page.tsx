@@ -19,7 +19,7 @@ export default function BienvenidaPage() {
           className="object-cover object-[56%_center]"
         />
         {/* Logo: chip blanco, radio 14, padding 8/12, 20px del borde, 52px arriba */}
-        <div className="absolute top-[max(52px,calc(env(safe-area-inset-top)+8px))] left-5 rounded-chip bg-surface px-3 py-2">
+        <div className="absolute top-[max(52px,calc(env(safe-area-inset-top)+8px))] left-5 rounded-chip bg-surface px-3 py-2 dark:bg-white">
           <Image src="/images/logo-skema.svg" alt="Skema Promotora" width={48} height={32} unoptimized className="h-8 w-12 object-contain" />
         </div>
       </div>

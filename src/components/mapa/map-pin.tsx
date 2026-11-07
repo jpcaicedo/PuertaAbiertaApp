@@ -72,7 +72,7 @@ export function ResidencePin({ label }: { label: string }) {
         aria-hidden
         className="size-[22px] rounded-full border-4 border-white bg-brand shadow-[0_0_0_10px_rgb(1_75_163/0.15)]"
       />
-      <span className="rounded-field bg-ink px-2.5 py-1 text-overline font-medium whitespace-nowrap text-white">
+      <span className="rounded-field bg-ink px-2.5 py-1 text-overline font-medium whitespace-nowrap text-text-on-dark">
         {label}
       </span>
     </div>

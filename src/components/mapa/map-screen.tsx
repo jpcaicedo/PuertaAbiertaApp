@@ -105,7 +105,7 @@ export function MapScreen() {
             className={cn(
               "shrink-0 cursor-pointer rounded-card border px-3 py-1.5 text-overline font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand",
               filter === f.id
-                ? "border-ink bg-ink text-white"
+                ? "border-ink bg-ink text-text-on-dark"
                 : "border-border bg-surface text-text hover:border-brand/60",
             )}
           >
@@ -115,7 +115,7 @@ export function MapScreen() {
       </div>
 
       {/* Mapa (fondo) + capa de controles encima */}
-      <div className="relative flex-1 overflow-hidden bg-[#f9f9f9]">
+      <div className="relative flex-1 overflow-hidden bg-[#f9f9f9] dark:bg-bg">
         {USE_MAPBOX ? (
           <NeighborhoodMap
             places={visible}
