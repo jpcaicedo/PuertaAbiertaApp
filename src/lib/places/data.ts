@@ -47,8 +47,8 @@ export const places: NeighborhoodPlace[] = [
     openUntil: "9:00 p. m.",
     benefit: { title: "10 % para residentes", detail: "Muestra tu perfil de Puerta Abierta en la caja.", short: "10 %" },
     address: "Carrera 105 # 14-20",
-    image: "/images/lugares/cafe-saman.png",
-    cover: "/images/lugares/cafe-saman-portada.jpg",
+    image: "/images/lugares/cafe-saman.jpg",
+    cover: "/images/lugares/cafe-saman.jpg",
     reviews: [
       { name: "Camila", tower: "B", avatar: "/images/vecinos/camila.png", text: "El mejor lugar para trabajar en la tarde. Tienen enchufes en todas las mesas." },
       { name: "Juan", tower: "A", avatar: "/images/vecinos/juan.png", text: "Los sábados hay pan sin gluten. Llega antes de las 10." },
