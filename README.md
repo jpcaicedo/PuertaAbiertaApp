@@ -20,7 +20,7 @@ npm run dev        # http://localhost:3000
 | 5 · Directorio | D1 – D15 (18) | ✅ |
 | 6 · Zonas comunes | Z1 – Z8 (9) | ✅ |
 | 7 · Perfil y notificaciones | P1 – P4, N1 (5) | ✅ |
-| 8 · Administración | X1 – X8 | pendiente |
+| 8 · Administración | X1 – X8 (8) | ✅ |
 
 ## Rutas (flujo 1)
 
@@ -116,6 +116,23 @@ y son de ejemplo: hay que reemplazarlas por las reales. En Vercel, agrega la mis
 | `/notificaciones` | N1 · Notificaciones (al tocar una, queda leída) |
 
 Las preferencias y las notificaciones leídas se guardan en `sessionStorage` (`src/lib/profile/store.ts`).
+
+## Rutas (flujo 8 · Administración)
+
+Por ahora el panel se abre escribiendo la ruta `/admin` (cuando exista el inicio de sesión con roles, la administración entrará directo ahí).
+
+| Ruta | Frame |
+| --- | --- |
+| `/admin` | X1 · Inicio de la administración |
+| `/admin/solicitudes?tipo=actividades` | X2 · Solicitudes (filtros Todas / Actividades / Reservas) |
+| `/admin/solicitudes/[id]` | X3 · Revisar solicitud (Proponer otra fecha y Rechazar abren una hoja) |
+| `/admin/solicitudes/[id]/aprobada` | X4 · Solicitud aprobada |
+| `/admin/avisos/nuevo` | X5 · Publicar aviso |
+| `/admin/avisos/publicado?para=C` | X6 · Aviso publicado |
+| `/admin/reportes/chaqueta-verde-oliva` | X7 · Revisar reporte |
+| `/admin/reportes/[id]/retirada` | X8 · Publicación retirada |
+
+Las decisiones y los avisos publicados se guardan en `sessionStorage` (`src/lib/admin/store.ts`).
 
 Las publicaciones propias y el borrador del servicio se guardan en `sessionStorage` (`src/lib/directory/store.ts`).
 
