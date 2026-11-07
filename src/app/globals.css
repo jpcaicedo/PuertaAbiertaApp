@@ -54,6 +54,12 @@
   --pa-step-current: #fd9200; /* paso en curso */
   --pa-step-pending: #e2e0e1; /* paso pendiente */
 
+  /* Flujo Directorio */
+  --pa-segment: #e9ecf0; /* fondo del control segmentado */
+  --pa-star: #fd9200; /* estrellas de calificación */
+  --pa-toast: #172033; /* fondo del aviso flotante */
+  --pa-toast-icon: #6fd39b;
+
   /* Mapeo a las variables de shadcn/ui para que los componentes
      que se agreguen con `npx shadcn add` hereden la paleta. */
   --background: var(--pa-bg);
@@ -110,6 +116,10 @@
   --color-note: var(--pa-note);
   --color-step-current: var(--pa-step-current);
   --color-step-pending: var(--pa-step-pending);
+  --color-segment: var(--pa-segment);
+  --color-star: var(--pa-star);
+  --color-toast: var(--pa-toast);
+  --color-toast-icon: var(--pa-toast-icon);
 
   /* shadcn */
   --color-background: var(--background);

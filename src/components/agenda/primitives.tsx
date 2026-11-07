@@ -121,8 +121,8 @@ type DetailHeroProps = {
   image?: string;
   imageAlt?: string;
   illustration?: LucideIcon;
-  /** Alto de la foto: 300 (Agenda) o 260 (Mapa). */
-  photoHeight?: 260 | 300;
+  /** Alto de la foto: 300 (Agenda), 260 (Mapa) o 360 (Marketplace). */
+  photoHeight?: 260 | 300 | 360;
 };
 
 /**
@@ -131,7 +131,7 @@ type DetailHeroProps = {
  */
 export function DetailHero({ backHref, image, imageAlt = "", illustration: Illustration = BookOpen, photoHeight = 300 }: DetailHeroProps) {
   return (
-    <div className={cn("relative w-full shrink-0", image ? (photoHeight === 300 ? "h-[300px]" : "h-[260px]") : "h-[240px] bg-illustration")}>
+    <div className={cn("relative w-full shrink-0", image ? { 260: "h-[260px]", 300: "h-[300px]", 360: "h-[360px]" }[photoHeight] : "h-[240px] bg-illustration")}>
       {image ? (
         <Image src={image} alt={imageAlt} fill priority sizes="(max-width: 430px) 100vw, 430px" quality={90} className="object-cover" />
       ) : (

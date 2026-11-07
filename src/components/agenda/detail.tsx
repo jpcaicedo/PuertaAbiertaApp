@@ -202,7 +202,7 @@ export function NeighborhoodEventDetail({ event }: { event: NeighborhoodEvent })
         noHandle
       >
         <Button asChild className="rounded-[80px]">
-          <Link href={`/directorio/${event.sharedBy.name.toLowerCase()}`}>Escribirle a {event.sharedBy.name}</Link>
+          <Link href={`/directorio/${event.sharedBy.name.toLowerCase()}/mensaje`}>Escribirle a {event.sharedBy.name}</Link>
         </Button>
         <BottomSheetClose asChild>
           <Button asChild variant="secondary" className="rounded-[80px]">
