@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Screen, ScreenHeader } from "@/components/app/screen";
@@ -67,7 +68,13 @@ export function PrivacyScreen() {
 
         <p className="flex w-full items-start gap-2 px-1 text-caption text-text-tertiary">
           <Lock className="size-4 shrink-0" strokeWidth={2} aria-hidden />
-          <span>Nunca compartimos tus datos con comercios ni con terceros. Así lo exige la Ley 1581 de 2012.</span>
+          <span>
+            Nunca compartimos tus datos con comercios ni con terceros. Así lo exige la{" "}
+            <Link href="/politica-de-datos" className="underline underline-offset-2 hover:text-brand">
+              Ley 1581 de 2012
+            </Link>
+            .
+          </span>
         </p>
       </div>
     </Screen>
