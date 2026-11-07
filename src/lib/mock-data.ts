@@ -147,7 +147,7 @@ export const recommendedPlace: Place = {
   recommendations: 34,
   distanceLabel: "a\u00a0200\u00a0m",
   perk: "10 % para residentes",
-  image: "/images/lugares/cafe-saman.png",
+  image: "/images/lugares/cafe-saman.jpg",
 };
 
 /** "Hace 2 h", "Hace 5 min", "Hace 3 d". */
