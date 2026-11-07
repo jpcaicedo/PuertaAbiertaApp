@@ -121,15 +121,17 @@ type DetailHeroProps = {
   image?: string;
   imageAlt?: string;
   illustration?: LucideIcon;
+  /** Alto de la foto: 300 (Agenda) o 260 (Mapa). */
+  photoHeight?: 260 | 300;
 };
 
 /**
  * Cabecera de A3/A9: foto (300) o ilustración (240), botón Atrás blanco de 44 a 16/48,
  * y la hoja de contenido que sube 24px con radio superior 24.
  */
-export function DetailHero({ backHref, image, imageAlt = "", illustration: Illustration = BookOpen }: DetailHeroProps) {
+export function DetailHero({ backHref, image, imageAlt = "", illustration: Illustration = BookOpen, photoHeight = 300 }: DetailHeroProps) {
   return (
-    <div className={cn("relative w-full shrink-0", image ? "h-[300px]" : "h-[240px] bg-illustration")}>
+    <div className={cn("relative w-full shrink-0", image ? (photoHeight === 300 ? "h-[300px]" : "h-[260px]") : "h-[240px] bg-illustration")}>
       {image ? (
         <Image src={image} alt={imageAlt} fill priority sizes="(max-width: 430px) 100vw, 430px" quality={90} className="object-cover" />
       ) : (
