@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 type Tab = { href: string; label: string; icon: LucideIcon; /** Rutas que también activan la pestaña. */ match: string[] };
 
 const tabs: Tab[] = [
-  { href: "/inicio", label: "Inicio", icon: House, match: ["/inicio", "/avisos"] },
+  { href: "/inicio", label: "Inicio", icon: House, match: ["/inicio", "/avisos", "/zonas-comunes"] },
   { href: "/mapa", label: "Mapa", icon: Map, match: ["/mapa"] },
   { href: "/agenda", label: "Agenda", icon: Calendar, match: ["/agenda"] },
   { href: "/directorio", label: "Directorio", icon: Users, match: ["/directorio"] },

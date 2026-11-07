@@ -121,21 +121,30 @@ type DetailHeroProps = {
   image?: string;
   imageAlt?: string;
   illustration?: LucideIcon;
-  /** Alto de la foto: 300 (Agenda), 260 (Mapa) o 360 (Marketplace). */
-  photoHeight?: 260 | 300 | 360;
+  /** Alto de la foto: 300 (Agenda), 260 (Mapa), 360 (Marketplace) o 240 (Zonas comunes). */
+  photoHeight?: 240 | 260 | 300 | 360;
+  /** Color de la cabecera ilustrada: cálido (Agenda) o azul (Zonas comunes). */
+  illustrationTone?: "warm" | "brand";
 };
 
 /**
  * Cabecera de A3/A9: foto (300) o ilustración (240), botón Atrás blanco de 44 a 16/48,
  * y la hoja de contenido que sube 24px con radio superior 24.
  */
-export function DetailHero({ backHref, image, imageAlt = "", illustration: Illustration = BookOpen, photoHeight = 300 }: DetailHeroProps) {
+const photoHeights = { 240: "h-[240px]", 260: "h-[260px]", 300: "h-[300px]", 360: "h-[360px]" };
+const illustrationTones = {
+  warm: { box: "bg-illustration", icon: "top-20 size-20 text-illustration-ink" },
+  brand: { box: "bg-brand-soft", icon: "top-[90px] size-[70px] text-brand" },
+};
+
+export function DetailHero({ backHref, image, imageAlt = "", illustration: Illustration = BookOpen, photoHeight = 300, illustrationTone = "warm" }: DetailHeroProps) {
+  const tone = illustrationTones[illustrationTone];
   return (
-    <div className={cn("relative w-full shrink-0", image ? { 260: "h-[260px]", 300: "h-[300px]", 360: "h-[360px]" }[photoHeight] : "h-[240px] bg-illustration")}>
+    <div className={cn("relative w-full shrink-0", image ? photoHeights[photoHeight] : cn("h-[240px]", tone.box))}>
       {image ? (
         <Image src={image} alt={imageAlt} fill priority sizes="(max-width: 430px) 100vw, 430px" quality={90} className="object-cover" />
       ) : (
-        <Illustration className="absolute top-20 left-1/2 size-20 -translate-x-1/2 text-illustration-ink" strokeWidth={2} aria-hidden />
+        <Illustration className={cn("absolute left-1/2 -translate-x-1/2", tone.icon)} strokeWidth={2} aria-hidden />
       )}
       <Link
         href={backHref}
