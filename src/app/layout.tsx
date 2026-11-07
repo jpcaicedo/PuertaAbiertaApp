@@ -35,10 +35,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   // Color de la barra del navegador según el tema del sistema (mismo valor que --pa-bg).
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f9fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f1419" },
-  ],
+  themeColor: "#f7f9fb",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
