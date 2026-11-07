@@ -17,7 +17,7 @@ npm run dev        # http://localhost:3000
 | 2 · Inicio | I1 – I4 | ✅ |
 | 3 · Agenda | A1 – A13 (15) | ✅ |
 | 4 · Mapa | M1 – M3 (4) | ✅ |
-| 5 · Directorio | D1 – D15 | pendiente |
+| 5 · Directorio | D1 – D15 (18) | ✅ |
 | 6 · Zonas comunes | Z1 – Z8 | pendiente |
 | 7 · Perfil y notificaciones | P1 – P4, N1 | pendiente |
 | 8 · Administración | X1 – X8 | pendiente |
@@ -75,6 +75,24 @@ Con token, M1 muestra Mapbox (`streets-v12`, centrado en Cali, zoom 13) con los 
 Sin token, usa el plano ilustrado del diseño. Las coordenadas de los lugares están en `src/lib/places/data.ts`
 y son de ejemplo: hay que reemplazarlas por las reales. En Vercel, agrega la misma variable en
 *Settings → Environment Variables*.
+
+## Rutas (flujo 5)
+
+| Ruta | Frame |
+| --- | --- |
+| `/directorio` | D1 · Vecinos y servicios |
+| `/directorio/buscar?q=perros` | D2 · Buscar vecinos · D2b · Sin resultados |
+| `/directorio/[id]` | D3 · Perfil del vecino |
+| `/directorio/[id]/mensaje` | D4 · Mensaje a Camila |
+| `/directorio/ofrecer` → `/vista-previa` → `/listo` | D5 · Publicar servicio · D6 · Vista previa · D7 · Servicio publicado |
+| `/directorio/marketplace` | D8 · Marketplace |
+| `/directorio/marketplace/[id]` | D9 · Detalle del producto · D14 · Reportar (hoja) |
+| `/directorio/marketplace/[id]/mensaje` | D4b · Mensaje al vendedor |
+| `/directorio/marketplace/[id]/reportado` | D15 · Reporte enviado |
+| `/directorio/marketplace/vender` → `/listo` | D10 · Vender un producto · D11 · Producto publicado |
+| `/directorio/mis-publicaciones` | D12 · Mis publicaciones · D13 · ¿Ya lo vendiste? · D12b · Producto vendido |
+
+Las publicaciones propias y el borrador del servicio se guardan en `sessionStorage` (`src/lib/directory/store.ts`).
 
 Las pantallas de detalle y formularios viven en `src/app/(detail)/`, sin barra inferior.
 El estado de inscripciones, lista de espera y "Voy" se guarda en `sessionStorage` (`src/lib/agenda/store.ts`) hasta que exista la API.
