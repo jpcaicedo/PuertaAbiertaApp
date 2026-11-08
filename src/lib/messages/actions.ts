@@ -8,7 +8,7 @@ import { demoKeyToTarget } from "./queries";
  * D4 · Enviar mensaje. `to` es el id del vecino o "demo-s-camila" para un vecino de ejemplo.
  * La base de datos verifica que sea del conjunto y que acepte mensajes.
  */
-export type Attachment = { kind: "photo" | "audio"; path: string; duration?: number };
+export type Attachment = { kind: "photo" | "audio"; path: string; duration?: number; wave?: number[] };
 
 export async function sendMessage(
   to: string,
@@ -21,7 +21,7 @@ export async function sendMessage(
   if (body.length > 1000) return { ok: false, error: "El mensaje es muy largo." };
   const demo = demoKeyToTarget(to);
   const supabase = await createClient();
-  const row: Record<string, string | number> = demo ? { para_demo: demo, texto: body } : { para: to, texto: body };
+  const row: Record<string, string | number | number[]> = demo ? { para_demo: demo, texto: body } : { para: to, texto: body };
   if (productId) row.producto_id = productId;
   if (attachment) {
     const user = await getSessionUser();
@@ -30,6 +30,9 @@ export async function sendMessage(
     row.tipo = attachment.kind === "photo" ? "foto" : "audio";
     row.adjunto = attachment.path;
     if (attachment.duration != null) row.duracion = Math.round(attachment.duration);
+    if (attachment.wave?.length) {
+      row.onda = attachment.wave.slice(0, 64).map((v) => Math.max(0, Math.min(100, Math.round(v))));
+    }
   }
   const { data, error } = await supabase.from("mensajes").insert(row).select("id, created_at").single();
   if (error || !data) {

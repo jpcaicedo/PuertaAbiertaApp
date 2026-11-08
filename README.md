@@ -216,8 +216,9 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 14. `supabase/migrations/0010_textos_notificaciones.sql` — respeta las mayúsculas de los títulos en las notificaciones.
 15. `supabase/migrations/0011_notificaciones_en_vivo.sql` — cada mensaje genera su aviso flotante (sigue habiendo una notificación por conversación).
 16. `supabase/migrations/0012_fotos_audios.sql` — fotos y audios en los chats, en una carpeta privada (`chat`).
+17. `supabase/migrations/0013_ondas_audio.sql` — guarda la onda de cada mensaje de voz para dibujar las barras.
 
-**Fotos y audios en el chat.** La cámara manda una foto (reducida a 1600 px); mantener presionado el micrófono graba un audio de hasta 2 minutos, al soltar se envía y deslizando a la izquierda se cancela. Los archivos van a una carpeta privada: solo los abren quien envió y quien recibió, con enlaces temporales. La notificación dice "te envió una foto" o "te envió un audio" y la bandeja muestra "Foto" o "Mensaje de voz (0:12)".
+**Fotos y audios en el chat.** La cámara manda una foto (reducida a 1600 px); mantener presionado el micrófono graba un audio de hasta 2 minutos, al soltar se envía y deslizando a la izquierda se cancela. Los archivos van a una carpeta privada: solo los abren quien envió y quien recibió, con enlaces temporales. Los audios se ven como en WhatsApp: foto de quien habla, barras que suben y bajan según el volumen (se pintan al reproducir y se pueden tocar o arrastrar para adelantar) y la duración; mientras se graba, las barras se mueven en vivo. La notificación dice "te envió una foto" o "te envió un audio" y la bandeja muestra "Foto" o "Mensaje de voz (0:12)".
 
 Las actividades que ya empezaron dicen "En curso" y las que terminaron "Ya terminó", quedan al final del día y no permiten inscribirse ni marcar "Voy".
 
