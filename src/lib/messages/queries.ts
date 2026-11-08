@@ -23,6 +23,7 @@ type Row = {
   tipo: "texto" | "foto" | "audio";
   adjunto: string | null;
   duracion: number | null;
+  onda: number[] | null;
 };
 type PersonRow = {
   id: string;
@@ -47,7 +48,7 @@ export type Peer = {
 export type Conversation = { peer: Peer; last: string; lastAt: string; unread: number; mine: boolean };
 
 const COLUMNS =
-  "id, de, para, para_demo, texto, created_at, leido_en, oculto_para_receptor, oculto_para_emisor, tipo, adjunto, duracion";
+  "id, de, para, para_demo, texto, created_at, leido_en, oculto_para_receptor, oculto_para_emisor, tipo, adjunto, duracion, onda";
 
 /** "0:12" */
 export const formatDuration = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
@@ -142,6 +143,7 @@ const toMessage = (m: Row, me: string, urls: Map<string, string>): ChatMessage =
   media: m.adjunto ? urls.get(m.adjunto) : undefined,
   path: m.adjunto ?? undefined,
   duration: m.duracion ?? undefined,
+  wave: m.onda ?? undefined,
 });
 
 /** Enlaces temporales (1 h) para las fotos y audios de la conversación. */

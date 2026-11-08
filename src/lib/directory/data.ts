@@ -269,6 +269,8 @@ export type ChatMessage = {
   path?: string;
   /** Duración del audio en segundos. */
   duration?: number;
+  /** Onda del audio: niveles de volumen de 0 a 100 (para dibujar las barras). */
+  wave?: number[];
   /** Subiéndose todavía. */
   sending?: boolean;
 };

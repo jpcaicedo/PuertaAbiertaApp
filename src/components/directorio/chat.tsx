@@ -33,6 +33,7 @@ import { preparePhoto, recorderMime, signedChatUrl, uploadChatFile } from "@/lib
 import { subscribeToChanges } from "@/lib/supabase/realtime";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./ui";
+import { useCurrentUser } from "@/components/app/current-user";
 
 type ChatScreenProps = {
   backHref: string;
@@ -78,11 +79,21 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
    * Manda una foto o un audio: aparece de una en el chat (con la vista previa local) mientras sube.
    * Con un vecino de ejemplo o en modo demo, se queda solo en pantalla.
    */
-  async function sendMedia(kind: "photo" | "audio", blob: Blob, ext: string, contentType: string, duration?: number) {
+  async function sendMedia(
+    kind: "photo" | "audio",
+    blob: Blob,
+    ext: string,
+    contentType: string,
+    duration?: number,
+    wave?: number[],
+  ) {
     setError(undefined);
     const tempId = `tmp-${Date.now()}`;
     const local = URL.createObjectURL(blob);
-    setMessages((m) => [...m, { id: tempId, mine: true, text: "", time: nowLabel(), kind, media: local, duration, sending: !!remote }]);
+    setMessages((m) => [
+      ...m,
+      { id: tempId, mine: true, text: "", time: nowLabel(), kind, media: local, duration, wave, sending: !!remote },
+    ]);
     if (!remote) return;
     const path = await uploadChatFile(blob, ext, contentType);
     const fail = (msg: string) => {
@@ -90,7 +101,7 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
       setError(msg);
     };
     if (!path) return fail(kind === "photo" ? "No pudimos subir la foto. Inténtalo de nuevo." : "No pudimos enviar el audio. Inténtalo de nuevo.");
-    const attachment: Attachment = { kind, path, duration };
+    const attachment: Attachment = { kind, path, duration, wave };
     const r = await sendMessage(remote.peerId, "", remote.productId, attachment);
     if (!r.ok) return fail(r.error);
     setMessages((m) => m.map((x) => (x.id === tempId ? { ...x, id: r.id, path, sending: false } : x)));
@@ -151,7 +162,15 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "mensajes", filter: `para=eq.${me}` },
         (payload) => {
-          const m = payload.new as { id: string; de: string; texto: string; tipo?: string; adjunto?: string | null; duracion?: number | null };
+          const m = payload.new as {
+            id: string;
+            de: string;
+            texto: string;
+            tipo?: string;
+            adjunto?: string | null;
+            duracion?: number | null;
+            onda?: number[] | null;
+          };
           if (m.de !== peerId) return;
           void (async () => {
             const media = m.adjunto ? await signedChatUrl(m.adjunto) : undefined;
@@ -164,6 +183,7 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
               kind,
               media,
               duration: m.duracion ?? undefined,
+              wave: m.onda ?? undefined,
             };
             setMessages((list) => (list.some((x) => x.id === m.id) ? list : [...list, incoming]));
           })();
@@ -256,6 +276,7 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
               <Bubble
                 message={m}
                 name={name}
+                peerAvatar={avatar}
                 selected={selected?.id === m.id}
                 onOpenMenu={() => !m.sending && setSelected(m)}
                 onOpenPhoto={() => m.media && setViewer(m.media)}
@@ -309,7 +330,7 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
         ) : (
           <MicButton
             disabled={blocked}
-            onRecorded={(blob, ext, mime, seconds) => void sendMedia("audio", blob, ext, mime, seconds)}
+            onRecorded={(blob, ext, mime, seconds, wave) => void sendMedia("audio", blob, ext, mime, seconds, wave)}
             onError={setError}
           />
         )}
@@ -460,16 +481,19 @@ function clock(seconds: number) {
 function Bubble({
   message: m,
   name,
+  peerAvatar,
   selected,
   onOpenMenu,
   onOpenPhoto,
 }: {
   message: ChatMessage;
   name: string;
+  peerAvatar?: string;
   selected: boolean;
   onOpenMenu: () => void;
   onOpenPhoto: () => void;
 }) {
+  const me = useCurrentUser();
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const start = React.useRef<{ x: number; y: number } | null>(null);
   const longPressed = React.useRef(false);
@@ -539,10 +563,19 @@ function Bubble({
       <div
         {...press}
         style={{ WebkitTouchCallout: "none" }}
-        className={cn("rounded-card px-2.5 py-2 select-none", m.mine ? "bg-brand text-white" : "bg-note text-text", ring)}
+        className={cn("rounded-card py-2 pr-3 pl-2.5 select-none", m.mine ? "bg-brand text-white" : "bg-note text-text", ring)}
       >
         {who}
-        <AudioPlayer src={m.media} duration={m.duration} mine={m.mine} sending={m.sending} />
+        <AudioPlayer
+          id={m.id}
+          src={m.media}
+          duration={m.duration}
+          wave={m.wave}
+          mine={m.mine}
+          sending={m.sending}
+          avatar={m.mine ? (me.avatar ?? undefined) : peerAvatar}
+          avatarName={m.mine ? me.fullName : name}
+        />
       </div>
     );
   }
@@ -570,13 +603,64 @@ function Bubble({
   );
 }
 
-/** Mensaje de voz: reproducir/pausar, barra de avance y duración. */
-function AudioPlayer({ src, duration, mine, sending }: { src?: string; duration?: number; mine: boolean; sending?: boolean }) {
+const BARS = 36;
+
+/** Lleva una lista de niveles a `n` barras (promediando o repitiendo). */
+function resample(levels: number[], n = BARS) {
+  if (!levels.length) return [];
+  return Array.from({ length: n }, (_, i) => {
+    const from = Math.floor((i * levels.length) / n);
+    const to = Math.max(from + 1, Math.floor(((i + 1) * levels.length) / n));
+    const slice = levels.slice(from, to);
+    return slice.reduce((a, b) => a + b, 0) / slice.length;
+  });
+}
+
+/** Audios viejos sin onda guardada: una onda estable a partir del id, para que no se vea vacío. */
+function placeholderWave(id: string) {
+  let seed = [...id].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  return Array.from({ length: BARS }, () => {
+    seed = (seed * 1103515245 + 12345) >>> 0;
+    return 25 + (seed % 60);
+  });
+}
+
+/**
+ * Mensaje de voz como en WhatsApp: foto de quien habla con un micrófono, reproducir/pausar,
+ * barras que suben y bajan según el volumen (se pintan a medida que avanza) con un punto
+ * para adelantar o devolver, y la duración.
+ */
+function AudioPlayer({
+  id,
+  src,
+  duration,
+  wave,
+  mine,
+  sending,
+  avatar,
+  avatarName,
+}: {
+  id: string;
+  src?: string;
+  duration?: number;
+  wave?: number[];
+  mine: boolean;
+  sending?: boolean;
+  avatar?: string;
+  avatarName: string;
+}) {
   const audio = React.useRef<HTMLAudioElement>(null);
+  const track = React.useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = React.useState(false);
   const [current, setCurrent] = React.useState(0);
   const total = duration ?? 0;
   const progress = total ? Math.min(1, current / total) : 0;
+  const bars = React.useMemo(() => {
+    const levels = wave?.length ? resample(wave) : placeholderWave(id);
+    const max = Math.max(...levels, 1);
+    // Raíz cuadrada para que las partes suaves también se vean; mínimo visible para los silencios.
+    return levels.map((v) => Math.round(14 + 86 * Math.sqrt(v / max)));
+  }, [wave, id]);
 
   function toggle() {
     const a = audio.current;
@@ -585,31 +669,91 @@ function AudioPlayer({ src, duration, mine, sending }: { src?: string; duration?
     else a.pause();
   }
 
+  /** Tocar o arrastrar sobre la onda adelanta o devuelve el audio. */
+  function seek(clientX: number) {
+    const a = audio.current;
+    const el = track.current;
+    if (!a || !el || !total) return;
+    const rect = el.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+    a.currentTime = ratio * total;
+    setCurrent(ratio * total);
+  }
+
+  const played = mine ? "bg-white" : "bg-brand";
+  const pending = mine ? "bg-white/40" : "bg-brand/30";
+
   return (
-    <div className="flex w-[220px] items-center gap-2.5">
+    <div className="flex w-[244px] items-center gap-2">
+      <span className="relative shrink-0">
+        <Avatar name={avatarName} src={avatar} size={40} />
+        <span
+          aria-hidden
+          className={cn(
+            "absolute -right-1 -bottom-0.5 grid size-[18px] place-items-center rounded-full",
+            mine ? "bg-brand text-white" : "bg-note text-brand",
+          )}
+        >
+          <Mic className="size-3" strokeWidth={2.5} />
+        </span>
+      </span>
       <button
         type="button"
         onClick={toggle}
         disabled={!src || sending}
         aria-label={playing ? "Pausar mensaje de voz" : "Reproducir mensaje de voz"}
         className={cn(
-          "grid size-10 shrink-0 cursor-pointer place-items-center rounded-full disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-          mine ? "bg-white/20 text-white focus-visible:ring-white" : "bg-brand text-white focus-visible:ring-brand",
+          "grid size-9 shrink-0 cursor-pointer place-items-center rounded-full disabled:opacity-60 outline-none focus-visible:ring-2",
+          mine ? "text-white focus-visible:ring-white" : "text-brand focus-visible:ring-brand",
         )}
       >
         {sending ? (
-          <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          <span className={cn("size-4 animate-spin rounded-full border-2", mine ? "border-white/40 border-t-white" : "border-brand/30 border-t-brand")} />
         ) : playing ? (
-          <Pause className="size-4" strokeWidth={2.5} aria-hidden />
+          <Pause className="size-6 fill-current" strokeWidth={1.5} aria-hidden />
         ) : (
-          <Play className="ml-0.5 size-4" strokeWidth={2.5} aria-hidden />
+          <Play className="ml-0.5 size-6 fill-current" strokeWidth={1.5} aria-hidden />
         )}
       </button>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className={cn("h-1 w-full overflow-hidden rounded-full", mine ? "bg-white/30" : "bg-border")} aria-hidden>
-          <div className={cn("h-full rounded-full", mine ? "bg-white" : "bg-brand")} style={{ width: `${progress * 100}%` }} />
+      <div className="flex min-w-0 flex-1 flex-col gap-1 pt-3">
+        <div
+          ref={track}
+          role="slider"
+          tabIndex={src ? 0 : -1}
+          aria-label="Avance del mensaje de voz"
+          aria-valuemin={0}
+          aria-valuemax={Math.round(total)}
+          aria-valuenow={Math.round(current)}
+          aria-valuetext={clock(current)}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            e.currentTarget.setPointerCapture?.(e.pointerId);
+            seek(e.clientX);
+          }}
+          onPointerMove={(e) => e.buttons && seek(e.clientX)}
+          onKeyDown={(e) => {
+            const a = audio.current;
+            if (!a || !total) return;
+            if (e.key === "ArrowRight") a.currentTime = Math.min(total, a.currentTime + 2);
+            if (e.key === "ArrowLeft") a.currentTime = Math.max(0, a.currentTime - 2);
+          }}
+          className="relative flex h-7 w-full cursor-pointer touch-none items-center gap-[2px] rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          {bars.map((h, i) => (
+            <span
+              key={i}
+              aria-hidden
+              className={cn("w-[3px] flex-1 rounded-full transition-colors", (i + 0.5) / bars.length <= progress ? played : pending)}
+              style={{ height: `${h}%` }}
+            />
+          ))}
+          <span
+            aria-hidden
+            className={cn("absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-sm", played)}
+            style={{ left: `${progress * 100}%` }}
+          />
         </div>
-        <span className={cn("text-overline", mine ? "text-white/80" : "text-text-tertiary")}>
+        <span className={cn("text-overline tabular-nums", mine ? "text-white/80" : "text-text-tertiary")}>
           {clock(playing || current ? current : total)}
         </span>
       </div>
@@ -643,10 +787,14 @@ function MicButton({
   onError,
 }: {
   disabled?: boolean;
-  onRecorded: (blob: Blob, ext: string, mime: string, seconds: number) => void;
+  onRecorded: (blob: Blob, ext: string, mime: string, seconds: number, wave: number[]) => void;
   onError: (message: string) => void;
 }) {
   const [recording, setRecording] = React.useState(false);
+  // Volumen mientras graba: se guarda para dibujar la onda y se muestra en vivo.
+  const levels = React.useRef<number[]>([]);
+  const [live, setLive] = React.useState<number[]>([]);
+  const audioCtx = React.useRef<AudioContext | null>(null);
   const [elapsed, setElapsed] = React.useState(0);
   const [cancelling, setCancelling] = React.useState(false);
   const recorder = React.useRef<MediaRecorder | null>(null);
@@ -657,7 +805,11 @@ function MicButton({
   const tick = React.useRef<ReturnType<typeof setInterval> | null>(null);
   const pressing = React.useRef(false);
 
-  const stopTracks = () => recorder.current?.stream.getTracks().forEach((t) => t.stop());
+  const stopTracks = () => {
+    recorder.current?.stream.getTracks().forEach((t) => t.stop());
+    void audioCtx.current?.close().catch(() => undefined);
+    audioCtx.current = null;
+  };
 
   async function begin(e: React.PointerEvent) {
     if (disabled) return;
@@ -689,7 +841,33 @@ function MicButton({
       const seconds = (Date.now() - startedAt.current) / 1000;
       if (cancelled.current || seconds < 1) return;
       const type = format.mime.split(";")[0];
-      onRecorded(new Blob(chunks.current, { type }), format.ext, type, Math.min(seconds, MAX_AUDIO_SECONDS));
+      const wave = resample(levels.current, 40).map((v) => Math.round(Math.min(100, v)));
+      onRecorded(new Blob(chunks.current, { type }), format.ext, type, Math.min(seconds, MAX_AUDIO_SECONDS), wave);
+    };
+
+    // Medidor de volumen (Web Audio): cada 100 ms guarda qué tan fuerte se está hablando.
+    let analyser: AnalyserNode | null = null;
+    try {
+      const ctx = new AudioContext();
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 1024;
+      ctx.createMediaStreamSource(stream).connect(analyser);
+      audioCtx.current = ctx;
+    } catch {
+      analyser = null;
+    }
+    const buffer = new Uint8Array(analyser?.fftSize ?? 0);
+    levels.current = [];
+    setLive([]);
+    const sample = () => {
+      if (!analyser) return;
+      analyser.getByteTimeDomainData(buffer);
+      let sum = 0;
+      for (const b of buffer) sum += ((b - 128) / 128) ** 2;
+      // Raíz del promedio (RMS), llevada a 0–100 con algo de ganancia para voces suaves.
+      const level = Math.min(100, Math.sqrt(sum / buffer.length) * 400);
+      levels.current.push(level);
+      setLive((l) => [...l.slice(-27), level]);
     };
     recorder.current = rec;
     startedAt.current = Date.now();
@@ -700,8 +878,9 @@ function MicButton({
     tick.current = setInterval(() => {
       const s = (Date.now() - startedAt.current) / 1000;
       setElapsed(s);
+      sample();
       if (s >= MAX_AUDIO_SECONDS) finish();
-    }, 200);
+    }, 100);
   }
 
   function finish() {
@@ -730,8 +909,17 @@ function MicButton({
         >
           <span className="size-2.5 animate-pulse rounded-full bg-error" aria-hidden />
           <span className="text-body font-medium text-text tabular-nums">{clock(elapsed)}</span>
-          <span className={cn("ml-auto text-caption", cancelling ? "font-semibold text-error" : "text-text-tertiary")}>
-            {cancelling ? "Suelta para cancelar" : "‹ Desliza para cancelar"}
+          <span aria-hidden className="flex h-6 min-w-0 flex-1 items-center justify-end gap-[2px] overflow-hidden">
+            {live.map((v, i) => (
+              <span
+                key={i}
+                className="w-[3px] shrink-0 rounded-full bg-brand"
+                style={{ height: `${Math.round(14 + 86 * Math.sqrt(v / 100))}%` }}
+              />
+            ))}
+          </span>
+          <span className={cn("shrink-0 text-caption", cancelling ? "font-semibold text-error" : "text-text-tertiary")}>
+            {cancelling ? "Suelta para cancelar" : "‹ Cancelar"}
           </span>
         </div>
       )}
