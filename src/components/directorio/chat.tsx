@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/bottom-sheet";
 import type { ChatMessage } from "@/lib/directory/data";
 import { deleteConversation, deleteMessage, markConversationRead, sendMessage } from "@/lib/messages/actions";
-import { createClient } from "@/lib/supabase/client";
+import { subscribeToChanges } from "@/lib/supabase/realtime";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./ui";
 
@@ -90,9 +90,8 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
   const peerId = remote?.peerId;
   React.useEffect(() => {
     if (!me || !peerId || peerId.startsWith("demo-")) return;
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`chat-${me}-${peerId}`)
+    return subscribeToChanges(`chat-${me}-${peerId}`, (channel) =>
+      channel
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "mensajes", filter: `para=eq.${me}` },
@@ -108,10 +107,7 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
         const id = (payload.old as { id?: string }).id;
         if (id) setMessages((list) => list.filter((x) => x.id !== id));
       })
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    );
   }, [me, peerId]);
 
   React.useEffect(() => {
