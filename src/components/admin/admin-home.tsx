@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/app/screen";
 import { ListGroup, PageHeading, SectionLabel } from "@/components/perfil/ui";
 import { community } from "@/lib/mock-data";
-import { activeNotices, adminRequests, reports, type AdminNotice } from "@/lib/admin/data";
+import { activeNotices, adminRequests, reports, type AdminNotice, type AdminRequest } from "@/lib/admin/data";
 import { useAdminState } from "@/lib/admin/store";
 import { cn } from "@/lib/utils";
 import { Tag } from "./ui";
@@ -46,9 +46,15 @@ function SummaryCard({
 }
 
 /** X1 · Inicio de la administración (484:5658) */
-export function AdminHome({ notices: serverNotices }: { notices?: AdminNotice[] }) {
+export function AdminHome({
+  notices: serverNotices,
+  requests,
+}: {
+  notices?: AdminNotice[];
+  requests?: AdminRequest[];
+}) {
   const state = useAdminState();
-  const pending = adminRequests.filter((r) => !state.decisions[r.id]);
+  const pending = requests ?? adminRequests.filter((r) => !state.decisions[r.id]);
   const oldest = Math.max(0, ...pending.map((r) => r.waitingHours));
   const openReports = reports.filter((r) => !state.reports[r.id]);
   // Con Supabase llegan de la base de datos; en modo demo, los de ejemplo más los publicados en el navegador.

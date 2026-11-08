@@ -23,7 +23,8 @@ export function useMyActivity(todayOverride?: string) {
   const today = todayOverride ?? (real ? agendaToday() : ZONES_TODAY);
   const zones = useZonesState();
 
-  const fromZones: MyActivity[] = zones.bookings.flatMap((b) => {
+  // Con Supabase las reservas ya vienen en `real`.
+  const fromZones: MyActivity[] = (real ? [] : zones.bookings).flatMap((b) => {
     const zone = getZone(b.zoneId);
     if (!zone) return [];
     const isTurn = zone.booking === "slots";

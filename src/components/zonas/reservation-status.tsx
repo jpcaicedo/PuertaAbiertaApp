@@ -8,14 +8,18 @@ import { formatLongDate, formatTime, formatTimeRange } from "@/lib/agenda/format
 import { ofZone, shiftTime } from "@/lib/zones/data";
 import { guestsLabel, reservationQuery, slotSummary, type Reservation } from "@/lib/zones/reservation";
 import { ConfirmBooking } from "./confirm-booking";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /** Z5 · Solicitud de reserva enviada (484:4457), con la aprobación simulada a los 4 s → Z6. */
 export function ReservationSent({ r }: { r: Reservation }) {
   return (
     <Screen>
-      <PushNotification href={`/zonas-comunes/${r.zone.id}/reservar/confirmada?${reservationQuery(r)}`}>
-        La administración aprobó tu reserva {ofZone(r.zone)}. Toca para verla.
-      </PushNotification>
+      {/* Modo demo: la aprobación se simula a los 4 s. Con Supabase la decide la administración de verdad. */}
+      {!isSupabaseConfigured && (
+        <PushNotification href={`/zonas-comunes/${r.zone.id}/reservar/confirmada?${reservationQuery(r)}`}>
+          La administración aprobó tu reserva {ofZone(r.zone)}. Toca para verla.
+        </PushNotification>
+      )}
 
       <div className="flex flex-col items-start gap-4 px-5 pt-[180px]">
         <StatusCircle icon={Clock} tone="warning" />
@@ -44,7 +48,9 @@ export function ReservationConfirmed({ r }: { r: Reservation }) {
   const Icon = zone.icon;
   return (
     <Screen>
-      <ConfirmBooking zoneId={zone.id} day={r.day} start={r.slot.start} end={r.slot.end} guests={r.guests} />
+      {!isSupabaseConfigured && (
+        <ConfirmBooking zoneId={zone.id} day={r.day} start={r.slot.start} end={r.slot.end} guests={r.guests} />
+      )}
       <div className="flex flex-col items-start gap-4 px-5 pt-[140px]">
         <StatusCircle icon={Check} tone="success" />
         <h1 className="text-title font-bold text-text">Tu reserva está confirmada</h1>

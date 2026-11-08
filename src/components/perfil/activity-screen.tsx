@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Screen, ScreenHeader } from "@/components/app/screen";
 import { parseDay, weekdayShort } from "@/lib/agenda/format";
-import { ZONES_TODAY } from "@/lib/zones/data";
+import { zonesToday } from "@/lib/zones/data";
 import type { MyActivity } from "@/lib/profile/data";
 import { useMyActivity } from "@/lib/profile/activity";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,7 @@ function DateTile({ day, past }: { day: string; past: boolean }) {
         past ? "bg-surface-muted text-text-muted" : "bg-option-blue text-brand",
       )}
     >
-      <span className="text-overline font-semibold">{day === ZONES_TODAY ? "Hoy" : cap(weekdayShort(day))}</span>
+      <span className="text-overline font-semibold">{day === zonesToday() ? "Hoy" : cap(weekdayShort(day))}</span>
       <span className="text-[20px] leading-[26px] font-bold">{parseDay(day).getDate()}</span>
     </span>
   );
