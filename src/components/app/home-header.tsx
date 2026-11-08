@@ -1,12 +1,15 @@
 "use client";
 
+import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Bell } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useCurrentUser, UserAvatar } from "./current-user";
 
 type HomeHeaderProps = {
-  /** Muestra un punto rojo sobre la campana. */
+  /** Muestra un punto rojo sobre la campana. Con Supabase se calcula solo. */
   hasUnread?: boolean;
 };
 
@@ -14,8 +17,28 @@ type HomeHeaderProps = {
  * Encabezado de Inicio (Figma "Encabezado", 476:955): alto 64, padding 20.
  * Avatar 36 + nombre 15/22 SemiBold azul + unidad 12/16 Medium. Campana 22 y logo 42×28, gap 14.
  */
-export function HomeHeader({ hasUnread = false }: HomeHeaderProps) {
+export function HomeHeader({ hasUnread: forced }: HomeHeaderProps) {
   const user = useCurrentUser();
+  const [live, setLive] = React.useState(false);
+  const hasUnread = forced ?? (live || (user.unreadNotifications ?? 0) > 0);
+
+  // Punto rojo en vivo: Supabase avisa cuando llega una notificación nueva.
+  const userId = user.id;
+  React.useEffect(() => {
+    if (!isSupabaseConfigured || userId === "demo") return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`campana-${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notificaciones", filter: `perfil_id=eq.${userId}` },
+        () => setLive(true),
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId]);
   return (
     <header className="flex h-16 shrink-0 items-center justify-between px-5">
       <Link href="/perfil" className="flex items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-brand">

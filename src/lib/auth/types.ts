@@ -20,6 +20,8 @@ export type CurrentUser = {
   role: Role;
   /** Preferencias guardadas en Supabase (P3/P4). En modo demo no vienen y se usan las del navegador. */
   prefs?: { privacy: PrivacyPrefs; notify: NotifyPrefs };
+  /** Notificaciones sin leer (punto rojo de la campana). Solo con Supabase. */
+  unreadNotifications?: number;
 };
 
 /** Sandra, la vecina de ejemplo (modo demo sin Supabase). */

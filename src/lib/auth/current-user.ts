@@ -15,7 +15,9 @@ type ProfileRow = {
   mostrar_telefono: boolean;
   en_directorio: boolean;
   recibe_mensajes: boolean;
-  notificaciones: Partial<Record<"requests" | "agenda" | "messages" | "marketplace", boolean>> | null;
+  notificaciones: Partial<
+    Record<"requests" | "agenda" | "messages" | "marketplace", boolean>
+  > | null;
   apartamentos: { numero: string; torres: { nombre: string } | null } | null;
 };
 
@@ -32,13 +34,19 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data } = await supabase
-    .from("perfiles")
-    .select(
-      "id, nombre, rol, avatar_url, bio, mostrar_apartamento, mostrar_telefono, en_directorio, recibe_mensajes, notificaciones, apartamentos ( numero, torres ( nombre ) )",
-    )
-    .eq("id", user.id)
-    .maybeSingle<ProfileRow>();
+  const [{ data }, { count: unread }] = await Promise.all([
+    supabase
+      .from("perfiles")
+      .select(
+        "id, nombre, rol, avatar_url, bio, mostrar_apartamento, mostrar_telefono, en_directorio, recibe_mensajes, notificaciones, apartamentos ( numero, torres ( nombre ) )",
+      )
+      .eq("id", user.id)
+      .maybeSingle<ProfileRow>(),
+    supabase
+      .from("notificaciones")
+      .select("id", { count: "exact", head: true })
+      .is("leida_en", null),
+  ]);
   if (!data) return null;
 
   const tower = data.apartamentos?.torres?.nombre ?? "";
@@ -49,10 +57,14 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     firstName: data.nombre.split(/\s+/)[0],
     tower,
     apartment,
-    unitLabel: data.rol === "administracion" ? "Administración" : `Torre ${tower} · Apto ${apartment}`,
+    unitLabel:
+      data.rol === "administracion"
+        ? "Administración"
+        : `Torre ${tower} · Apto ${apartment}`,
     avatar: data.avatar_url,
     bio: data.bio,
     role: data.rol,
+    unreadNotifications: unread ?? 0,
     prefs: {
       privacy: {
         showApartment: data.mostrar_apartamento,

@@ -210,6 +210,7 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 8. `supabase/migrations/0005_marketplace.sql` — productos, reportes y la carpeta de fotos (`productos`).
 9. `supabase/seed_0005.sql` — los cuatro productos de ejemplo y un reporte para la administración.
 10. `supabase/migrations/0006_mensajes.sql` — mensajes a vecinos de ejemplo y eliminar mensajes.
+11. `supabase/migrations/0007_notificaciones.sql` — notificaciones dentro de la app (se crean solas con disparadores).
 
 Para copiar un archivo, ábrelo en VS Code o en el Bloc de notas y usa Ctrl+A y Ctrl+C. Desde Git Bash, `clip` daña las tildes.
 
@@ -246,4 +247,6 @@ Los vecinos de ejemplo (Camila, Juan, Marta y los vendedores del Marketplace) no
 
 **Bloque 5.** Marketplace: publicar con hasta 5 fotos (se reducen a 1200 px y se guardan en Storage), escribirle al vendedor (el mensaje queda ligado al producto), marcar como vendido, eliminar y Mis publicaciones con cuántos vecinos escribieron. Los servicios propios del Directorio también se pueden eliminar desde su perfil (papelera). Reportes: el vecino reporta sin que se sepa quién fue; la administración los revisa en `/admin` y puede retirar la publicación o mantenerla.
 
-Siguen con datos de ejemplo: notificaciones y la recuperación de contraseña.
+**Bloque 6.** Notificaciones dentro de la app: la base de datos las crea sola cuando la administración publica un aviso (a todos o a una torre), responde una reserva o una actividad propuesta, cuando llega un mensaje (una por conversación mientras no se lea), se libera un cupo de la lista de espera, o retiran una publicación. A la administración le llegan las solicitudes y reportes nuevos. Respetan las preferencias de P4 (los avisos y la moderación siempre llegan). La campana muestra el punto rojo en vivo y N1 permite marcar todas como leídas. No hay notificaciones push al celular todavía.
+
+Sigue simulada: la recuperación de contraseña.
