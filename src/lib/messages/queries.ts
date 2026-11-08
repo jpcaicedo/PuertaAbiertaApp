@@ -19,6 +19,7 @@ type Row = {
   created_at: string;
   leido_en: string | null;
   oculto_para_receptor: boolean;
+  oculto_para_emisor: boolean;
 };
 type PersonRow = {
   id: string;
@@ -42,7 +43,7 @@ export type Peer = {
 
 export type Conversation = { peer: Peer; last: string; lastAt: string; unread: number; mine: boolean };
 
-const COLUMNS = "id, de, para, para_demo, texto, created_at, leido_en, oculto_para_receptor";
+const COLUMNS = "id, de, para, para_demo, texto, created_at, leido_en, oculto_para_receptor, oculto_para_emisor";
 const UUID = /^[0-9a-f-]{36}$/i;
 const DEMO = /^demo-([sp])-([a-z0-9-]+)$/;
 
@@ -140,6 +141,7 @@ export async function getConversation(peerKey: string): Promise<{ me: string; pe
       .select(COLUMNS)
       .eq("de", me)
       .eq("para_demo", target)
+      .eq("oculto_para_emisor", false)
       .order("created_at")
       .limit(300)
       .returns<Row[]>();
@@ -153,7 +155,9 @@ export async function getConversation(peerKey: string): Promise<{ me: string; pe
   const { data } = await supabase
     .from("mensajes")
     .select(COLUMNS)
-    .or(`and(de.eq.${me},para.eq.${peerKey}),and(de.eq.${peerKey},para.eq.${me},oculto_para_receptor.eq.false)`)
+    .or(
+      `and(de.eq.${me},para.eq.${peerKey},oculto_para_emisor.eq.false),and(de.eq.${peerKey},para.eq.${me},oculto_para_receptor.eq.false)`,
+    )
     .order("created_at")
     .limit(300)
     .returns<Row[]>();
@@ -173,7 +177,7 @@ export async function getInbox(): Promise<Conversation[] | null> {
   const { data } = await supabase
     .from("mensajes")
     .select(COLUMNS)
-    .or(`de.eq.${me},and(para.eq.${me},oculto_para_receptor.eq.false)`)
+    .or(`and(de.eq.${me},oculto_para_emisor.eq.false),and(para.eq.${me},oculto_para_receptor.eq.false)`)
     .order("created_at", { ascending: false })
     .limit(500)
     .returns<Row[]>();
