@@ -12,6 +12,7 @@ import {
   type ProductCondition,
   type Review,
   type ServiceCategory,
+  withRealRatings,
 } from "./data";
 import type { MyListing } from "./store";
 
@@ -85,7 +86,20 @@ function toService(r: Row): NeighborService {
     keywords: x.keywords ?? [],
     ownerId: r.perfil_id,
     acceptsMessages: r.perfil_id ? r.recibe_mensajes : false,
+    dbId: r.id,
   };
+}
+
+/** Estrellas de las reseñas reales, por servicio. */
+async function starsByService(ids: string[]): Promise<Map<string, number[]>> {
+  const map = new Map<string, number[]>();
+  if (!ids.length) return map;
+  const supabase = await createClient();
+  const { data } = await supabase.from("resenas").select("servicio_id, estrellas").in("servicio_id", ids);
+  for (const r of (data ?? []) as { servicio_id: string; estrellas: number }[]) {
+    map.set(r.servicio_id, [...(map.get(r.servicio_id) ?? []), r.estrellas]);
+  }
+  return map;
 }
 
 export const getServices = cache(async (): Promise<NeighborService[]> => {
@@ -96,15 +110,66 @@ export const getServices = cache(async (): Promise<NeighborService[]> => {
     .select(COLUMNS)
     .order("created_at", { ascending: false })
     .returns<Row[]>();
-  return (data ?? []).map(toService);
+  const rows = data ?? [];
+  const stars = await starsByService(rows.map((r) => r.id));
+  return rows.map((r) => withRealRatings(toService(r), stars.get(r.id) ?? []));
 });
 
 export const getServiceBySlug = cache(async (slug: string): Promise<NeighborService | null> => {
   if (!isSupabaseConfigured) return demoService(slug);
   const supabase = await createClient();
   const { data } = await supabase.from("directorio_servicios").select(COLUMNS).eq("slug", slug).maybeSingle<Row>();
-  return data ? toService(data) : null;
+  if (!data) return null;
+  const stars = await starsByService([data.id]);
+  return withRealRatings(toService(data), stars.get(data.id) ?? []);
 });
+
+export type ReviewAccess = "si" | "propio" | "sin_contacto" | "no_existe";
+
+type ReviewRow = {
+  estrellas: number;
+  comentario: string;
+  created_at: string;
+  perfil_id: string;
+  perfiles: { nombre: string; avatar_url: string | null; apartamentos: { torres: { nombre: string } | null } | null } | null;
+};
+
+/** Reseñas reales de un servicio (las más nuevas arriba), la mía y si puedo dejar una. */
+export async function getServiceReviews(
+  dbId: string | undefined,
+): Promise<{ reviews: Review[]; mine?: { stars: number; text: string }; access: ReviewAccess }> {
+  if (!isSupabaseConfigured || !dbId) return { reviews: [], access: "si" };
+  const [supabase, user] = await Promise.all([createClient(), getSessionUser()]);
+  const [{ data }, { data: access }] = await Promise.all([
+    supabase
+      .from("resenas")
+      .select("estrellas, comentario, created_at, perfil_id, perfiles(nombre, avatar_url, apartamentos(torres(nombre)))")
+      .eq("servicio_id", dbId)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    supabase.rpc("puedo_resenar", { p_servicio: dbId }),
+  ]);
+  const rows = (data ?? []) as unknown as ReviewRow[];
+  const reviews = rows.map((r): Review => {
+    const full = r.perfiles?.nombre ?? "Vecino";
+    return {
+      name: full.split(/\s+/)[0],
+      fullName: full,
+      tower: r.perfiles?.apartamentos?.torres?.nombre ?? "",
+      text: r.comentario,
+      stars: r.estrellas,
+      date: r.created_at,
+      avatar: r.perfiles?.avatar_url ?? undefined,
+      mine: r.perfil_id === user?.id,
+    };
+  });
+  const own = rows.find((r) => r.perfil_id === user?.id);
+  return {
+    reviews,
+    mine: own ? { stars: own.estrellas, text: own.comentario } : undefined,
+    access: (access as ReviewAccess | null) ?? "sin_contacto",
+  };
+}
 
 /* ───────────────────────────── Marketplace ───────────────────────────── */
 
