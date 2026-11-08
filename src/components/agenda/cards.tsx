@@ -55,7 +55,7 @@ type ActivityCardProps = {
 
 /**
  * Actividad del conjunto (A2, A5, A13): foto + insignias + título 18/24 + lugar + cupos + botón de 52.
- * El botón cambia según el estado: Inscribirme · Ya estás inscrita · Lista de espera · En lista de espera.
+ * El botón cambia según el estado: Inscribirme · Inscripción confirmada · Lista de espera · En lista de espera.
  */
 export function ActivityListCard({ activity, onJoinWaitlist }: ActivityCardProps) {
   const { enrolled, waitlist } = useAgendaState();
@@ -65,7 +65,7 @@ export function ActivityListCard({ activity, onJoinWaitlist }: ActivityCardProps
   // Ya empezó o terminó: no se puede inscribir ni entrar a la lista de espera.
   const status = activityStatus(activity);
   const started = status !== "upcoming";
-  // El cupo propio cuenta en el resumen una vez inscrita (como en el detalle).
+  // El cupo propio cuenta en el resumen una vez inscrito (como en el detalle).
   const view = isEnrolled ? { ...activity, enrolled: Math.min(activity.capacity, activity.enrolled + 1) } : activity;
   const full = spotsLeft(view) === 0;
 
@@ -96,7 +96,7 @@ export function ActivityListCard({ activity, onJoinWaitlist }: ActivityCardProps
             <Button asChild variant="secondary" className="h-[52px]">
               <Link href={href}>
                 <Check className="text-success" strokeWidth={2.5} aria-hidden />
-                Ya estás inscrita
+                Inscripción confirmada
               </Link>
             </Button>
           ) : started ? null : waitPosition ? (

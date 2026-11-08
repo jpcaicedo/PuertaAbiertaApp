@@ -38,7 +38,7 @@ export function ActivityDetail({ activity }: { activity: CommunityActivity }) {
   const isEnrolled = enrolled.includes(activity.id);
   const full = spotsLeft(activity) === 0;
   const status = activityStatus(activity);
-  // El cupo propio cuenta en el resumen una vez inscrita.
+  // El cupo propio cuenta en el resumen una vez confirmada la inscripción.
   const view = isEnrolled ? { ...activity, enrolled: Math.min(activity.capacity, activity.enrolled + 1) } : activity;
 
   const enroll = React.useCallback(() => {
@@ -106,7 +106,7 @@ export function ActivityDetail({ activity }: { activity: CommunityActivity }) {
         onOpenChange={setConfirmOpen}
         icon={Check}
         tone="success"
-        title="¡Listo, quedaste inscrita!"
+        title="¡Listo, inscripción confirmada!"
         summary={`${activity.title} · ${isToday ? "Hoy" : formatLongDate(activity.date)}, ${formatTime(activity.start)} · ${activity.place}`}
         description="Te recordamos una hora antes. Si no puedes ir, cancela desde Mis inscripciones para liberar tu cupo."
       >
@@ -216,7 +216,7 @@ export function NeighborhoodEventDetail({ event }: { event: NeighborhoodEvent })
         description={
           othersText
             ? `${othersText} también ${others.length === 1 ? "va" : "van"}. Pueden ponerse de acuerdo para ir juntos desde la portería.`
-            : "Eres de los primeros del conjunto en apuntarte. Cuéntales a tus vecinos para ir juntos."
+            : "Eres de las primeras personas del conjunto en apuntarse. Cuéntales a tus vecinos para ir juntos."
         }
         noHandle
       >

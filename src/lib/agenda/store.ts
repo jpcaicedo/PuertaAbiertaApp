@@ -34,7 +34,7 @@ const ServerState = React.createContext<AgendaState | null>(null);
 
 /** Entrega al cliente lo que el usuario tiene en la agenda (leído en el servidor). */
 export function AgendaStateProvider({ value, children }: { value: AgendaState; children: React.ReactNode }) {
-  // Se sincroniza en el render para que la primera pintura ya muestre "Ya estás inscrita".
+  // Se sincroniza en el render para que la primera pintura ya muestre "Inscripción confirmada".
   if (typeof window !== "undefined" && hydratedFrom !== value) {
     hydratedFrom = value;
     remote = true;

@@ -26,7 +26,7 @@ export type Neighbor = {
   avatar?: string;
   avatarLarge?: string;
   verified: boolean;
-  /** Para "Vecina verificada" / "Vecino verificado". */
+  /** "Vecina verificada" / "Vecino verificado". Sin dato (vecinos reales): "Identidad verificada". */
   feminine?: boolean;
 };
 
@@ -91,7 +91,7 @@ export const services: NeighborService[] = [
   },
   {
     id: "juan",
-    neighbor: { id: "juan", name: "Juan Gaviria", firstName: "Juan", apartment: "101", tower: "A", verified: true },
+    neighbor: { id: "juan", name: "Juan Gaviria", firstName: "Juan", apartment: "101", tower: "A", verified: true, feminine: false },
     title: "Clases de inglés",
     shortRole: "Profesor de inglés",
     category: "clases",

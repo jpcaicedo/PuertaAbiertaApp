@@ -30,7 +30,7 @@ export function VerifiedMark() {
   return (
     <>
       <ShieldCheck className="size-4 shrink-0 text-brand" strokeWidth={2} aria-hidden />
-      <span className="sr-only">(vecino verificado)</span>
+      <span className="sr-only">(identidad verificada)</span>
     </>
   );
 }
