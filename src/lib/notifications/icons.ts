@@ -1,4 +1,4 @@
-import { Bell, Calendar, CircleCheck, Flag, Megaphone, MessageCircle, ShieldAlert, Tag, Wrench, type LucideIcon } from "lucide-react";
+import { Bell, Calendar, CircleCheck, Flag, Megaphone, MessageCircle, ShieldAlert, Star, Tag, Wrench, type LucideIcon } from "lucide-react";
 import type { NotificationTone } from "@/lib/profile/data";
 
 /** Colores del icono según el tono (N1 y el aviso flotante). */
@@ -12,6 +12,7 @@ export const toneClasses: Record<NotificationTone, string> = {
 /** Icono según el tipo de notificación que llega de Supabase. */
 export function notificationIcon(n: { kind: string; tone: NotificationTone; title: string }): LucideIcon {
   if (n.kind === "aviso") return Megaphone;
+  if (n.title.endsWith("te dejó una reseña")) return Star;
   if (n.kind === "messages") return MessageCircle;
   if (n.kind === "agenda") return Calendar;
   if (n.kind === "marketplace") return Tag;

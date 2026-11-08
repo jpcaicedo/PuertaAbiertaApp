@@ -219,6 +219,7 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 17. `supabase/migrations/0013_ondas_audio.sql` — guarda la onda de cada mensaje de voz para dibujar las barras.
 18. `supabase/migrations/0014_silenciar_notificaciones.sql` — interruptor general de notificaciones (prendido por defecto).
 19. `supabase/migrations/0015_pqrs.sql` — reportes de daños y PQRS: el vecino envía (con foto opcional en la carpeta privada `pqrs`), la administración cambia el estado (recibido, en proceso, resuelto) con una nota y el vecino recibe la notificación.
+20. `supabase/migrations/0016_resenas.sql` — reseñas reales de servicios: quien ya le escribió a un vecino por la app le puede dejar de 1 a 5 estrellas y un comentario (una por servicio, editable). El promedio suma las reseñas de ejemplo y las reales, y al vecino le llega una notificación.
 
 En Perfil → Configuración, la fila "Notificaciones" tiene un interruptor general: prendido por defecto; apagado, no llega ninguna notificación (ni el aviso flotante, ni los avisos de la administración). Tocando la fila se eligen los tipos uno por uno.
 

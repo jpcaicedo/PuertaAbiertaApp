@@ -13,8 +13,20 @@ export const serviceCategories: { id: ServiceCategory; label: string }[] = [
   { id: "otro", label: "Otro" },
 ];
 
-/** `fullName` solo se usa para las iniciales del avatar. */
-export type Review = { name: string; fullName: string; tower: string; text: string };
+/**
+ * `fullName` solo se usa para las iniciales del avatar.
+ * Las reseñas reales traen estrellas, fecha y si son mías; las de ejemplo, solo el texto.
+ */
+export type Review = {
+  name: string;
+  fullName: string;
+  tower: string;
+  text: string;
+  stars?: number;
+  date?: string;
+  avatar?: string;
+  mine?: boolean;
+};
 
 export type Neighbor = {
   id: string;
@@ -53,6 +65,8 @@ export type NeighborService = {
   ownerId?: string | null;
   /** Con Supabase: si el vecino acepta mensajes por la app. */
   acceptsMessages?: boolean;
+  /** Con Supabase: id del servicio en la base de datos (para las reseñas). */
+  dbId?: string;
 };
 
 const camila: Neighbor = {
@@ -151,6 +165,18 @@ export function initials(name: string) {
 export function formatRating(n: number) {
   return n.toFixed(1).replace(".", ",");
 }
+
+/** Suma las estrellas de las reseñas reales al promedio de ejemplo (si lo hay). */
+export function withRealRatings<T extends Pick<NeighborService, "rating" | "reviewCount">>(s: T, stars: number[]): T {
+  if (!stars.length) return s;
+  const base = s.rating ? s.reviewCount : 0;
+  const total = base + stars.length;
+  const sum = (s.rating ?? 0) * base + stars.reduce((a, b) => a + b, 0);
+  return { ...s, rating: sum / total, reviewCount: total };
+}
+
+export const reviewsLabel = (n: number, long = false) =>
+  `${n} ${n === 1 ? "reseña" : "reseñas"}${long ? " de vecinos" : ""}`;
 
 /* ───────────────────────────── Marketplace ───────────────────────────── */
 

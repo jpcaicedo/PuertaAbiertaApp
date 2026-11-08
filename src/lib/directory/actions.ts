@@ -96,3 +96,32 @@ export async function reportProduct(dbId: string, reason: string) {
   revalidatePath("/", "layout");
   return { ok: !error };
 }
+
+/** Dejar o editar mi reseña de un servicio. La base de datos revisa que ya le hayas escrito. */
+export async function reviewService(
+  dbId: string,
+  slug: string,
+  stars: number,
+  text: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("resenar_servicio", { p_servicio: dbId, p_estrellas: stars, p_comentario: text });
+  revalidatePath("/directorio", "layout");
+  if (error) {
+    if (error.message.includes("SIN_CONTACTO"))
+      return { ok: false, error: "Escríbele primero por la app. Después de contratarlo puedes dejarle una reseña." };
+    if (error.message.includes("SERVICIO_PROPIO")) return { ok: false, error: "No puedes reseñar tu propio servicio." };
+    return { ok: false, error: "No pudimos guardar la reseña. Inténtalo de nuevo." };
+  }
+  revalidatePath(`/directorio/${slug}`);
+  return { ok: true };
+}
+
+/** Borrar mi reseña. */
+export async function deleteReview(dbId: string, slug: string): Promise<{ ok: boolean }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("borrar_resena", { p_servicio: dbId });
+  revalidatePath("/directorio", "layout");
+  revalidatePath(`/directorio/${slug}`);
+  return { ok: !error };
+}
