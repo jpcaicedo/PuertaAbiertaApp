@@ -107,7 +107,7 @@ function ServiceCard({ service: s }: { service: NeighborService }) {
       <div className="relative z-10 flex w-full items-center gap-2">
         {isMine ? (
           <Button asChild variant="secondary" className="h-[46px] flex-1">
-            <Link href="/mensajes">Tu servicio · Ver mensajes</Link>
+            <Link href={`/directorio/${s.id}`}>Tu servicio · Ver o eliminar</Link>
           </Button>
         ) : (
           <Button asChild className="h-[46px] flex-1">

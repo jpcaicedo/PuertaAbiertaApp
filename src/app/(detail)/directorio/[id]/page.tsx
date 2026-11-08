@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Screen, ScreenHeader } from "@/components/app/screen";
 import { ActionBar, InfoList, InfoRow } from "@/components/agenda/primitives";
 import { Avatar, Rating } from "@/components/directorio/ui";
+import { DeleteServiceButton } from "@/components/directorio/delete-service";
 import { formatRating } from "@/lib/directory/data";
 import { getServiceBySlug } from "@/lib/directory/queries";
 import { getCurrentUser } from "@/lib/auth/current-user";
@@ -79,9 +80,12 @@ export default async function PerfilVecinoPage({ params }: Props) {
 
       <ActionBar>
         {isMine ? (
-          <Button asChild variant="secondary" className="flex-1 rounded-[80px]">
-            <Link href="/mensajes">Este es tu servicio · Ver mensajes</Link>
-          </Button>
+          <>
+            <Button asChild variant="secondary" className="flex-1 rounded-[80px]">
+              <Link href="/mensajes">Tu servicio · Ver mensajes</Link>
+            </Button>
+            <DeleteServiceButton slug={s.id} title={s.title} />
+          </>
         ) : (
           <Button asChild className="flex-1 rounded-[80px]">
             <Link href={`/directorio/${s.id}/mensaje`}>Enviar mensaje</Link>

@@ -28,3 +28,20 @@ export async function publishService(
   }
   return { ok: true, slug: data.slug };
 }
+
+/** Quitar un servicio propio del Directorio. Deja de verse para todos y se pueden seguir leyendo los mensajes. */
+export async function deleteService(slug: string): Promise<{ ok: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false };
+  const { data, error } = await supabase
+    .from("servicios")
+    .update({ activo: false })
+    .eq("slug", slug)
+    .eq("perfil_id", user.id)
+    .select("id");
+  revalidatePath("/", "layout");
+  return { ok: !error && (data?.length ?? 0) > 0 };
+}
