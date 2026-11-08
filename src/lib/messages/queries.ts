@@ -45,7 +45,15 @@ export type Peer = {
   demo?: boolean;
 };
 
-export type Conversation = { peer: Peer; last: string; lastAt: string; unread: number; mine: boolean };
+export type Conversation = {
+  peer: Peer;
+  last: string;
+  lastAt: string;
+  unread: number;
+  mine: boolean;
+  /** Si el último mensaje es mío: si el otro ya lo leyó. */
+  lastRead: boolean;
+};
 
 const COLUMNS =
   "id, de, para, para_demo, texto, created_at, leido_en, oculto_para_receptor, oculto_para_emisor, tipo, adjunto, duracion, onda";
@@ -144,6 +152,7 @@ const toMessage = (m: Row, me: string, urls: Map<string, string>): ChatMessage =
   path: m.adjunto ?? undefined,
   duration: m.duracion ?? undefined,
   wave: m.onda ?? undefined,
+  read: m.de === me ? m.leido_en != null : undefined,
 });
 
 /** Enlaces temporales (1 h) para las fotos y audios de la conversación. */
@@ -232,7 +241,14 @@ export async function getInbox(): Promise<Conversation[] | null> {
   return [...real, ...demo]
     .map((peer) => {
       const { last, unread } = byPeer.get(peer.id)!;
-      return { peer, last: previewText(last), lastAt: last.created_at, unread, mine: last.de === me };
+      return {
+        peer,
+        last: previewText(last),
+        lastAt: last.created_at,
+        unread,
+        mine: last.de === me,
+        lastRead: last.de === me && last.leido_en != null,
+      };
     })
     .sort((a, b) => b.lastAt.localeCompare(a.lastAt));
 }

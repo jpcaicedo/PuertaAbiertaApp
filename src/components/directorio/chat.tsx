@@ -33,6 +33,7 @@ import { preparePhoto, recorderMime, signedChatUrl, uploadChatFile } from "@/lib
 import { subscribeToChanges } from "@/lib/supabase/realtime";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./ui";
+import { ReadTicks } from "./read-ticks";
 import { useCurrentUser } from "@/components/app/current-user";
 
 type ChatScreenProps = {
@@ -154,6 +155,20 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
   // Mensajes nuevos en vivo: Supabase avisa cuando el otro vecino escribe.
   const me = remote?.me;
   const peerId = remote?.peerId;
+  const pendingRead = React.useRef(false);
+
+  // Llegaron mensajes con la app en segundo plano: se marcan leídos al volver a la conversación.
+  React.useEffect(() => {
+    if (!peerId || peerId.startsWith("demo-")) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && pendingRead.current) {
+        pendingRead.current = false;
+        void markConversationRead(peerId);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [peerId]);
   React.useEffect(() => {
     if (!me || !peerId || peerId.startsWith("demo-")) return;
     return subscribeToChanges(`chat-${me}-${peerId}`, (channel) =>
@@ -187,10 +202,22 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
             };
             setMessages((list) => (list.some((x) => x.id === m.id) ? list : [...list, incoming]));
           })();
-          void markConversationRead(peerId);
+          // Si la pantalla está a la vista, el otro vecino ve de una el doble chulo azul.
+          if (document.visibilityState === "visible") void markConversationRead(peerId);
+          else pendingRead.current = true;
         },
       )
       // "Eliminar para todos" del otro vecino: la burbuja desaparece también aquí.
+      // El otro vecino abrió la conversación: los propios pasan a "leído".
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "mensajes", filter: `de=eq.${me}` },
+        (payload) => {
+          const m = payload.new as { id: string; para: string | null; leido_en: string | null };
+          if (m.para !== peerId || !m.leido_en) return;
+          setMessages((list) => list.map((x) => (x.id === m.id ? { ...x, read: true } : x)));
+        },
+      )
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "mensajes" }, (payload) => {
         const id = (payload.old as { id?: string }).id;
         if (id) setMessages((list) => list.filter((x) => x.id !== id));
@@ -281,7 +308,11 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
                 onOpenMenu={() => !m.sending && setSelected(m)}
                 onOpenPhoto={() => m.media && setViewer(m.media)}
               />
-              <span className="text-overline text-text-tertiary">{m.time}</span>
+              <span className="flex items-center gap-1 text-overline text-text-tertiary">
+                {m.time}
+                {/* Con vecinos reales: enviándose, enviado o leído. */}
+                {m.mine && remote && !remote.demo && <ReadTicks sending={m.sending || m.id.startsWith("tmp-")} read={m.read} />}
+              </span>
             </li>
           ))}
         </ol>

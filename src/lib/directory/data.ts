@@ -273,6 +273,8 @@ export type ChatMessage = {
   wave?: number[];
   /** Subiéndose todavía. */
   sending?: boolean;
+  /** Solo en los propios: el otro vecino ya lo vio (doble chulo azul). */
+  read?: boolean;
 };
 
 export const sampleChats: Record<string, ChatMessage[]> = {

@@ -7,6 +7,7 @@ import { ListGroup, PageHeading } from "@/components/perfil/ui";
 import { chatTime, getInbox } from "@/lib/messages/queries";
 import { colombiaToday } from "@/lib/agenda/today";
 import { cn } from "@/lib/utils";
+import { ReadTicks } from "@/components/directorio/read-ticks";
 
 export const metadata = { title: "Mensajes · Puerta Abierta" };
 export const dynamic = "force-dynamic";
@@ -49,9 +50,12 @@ export default async function MensajesPage() {
                       <span className="shrink-0 text-overline text-text-tertiary">{when(c.lastAt)}</span>
                     </span>
                     <span className="flex items-center gap-2">
-                      <span className="flex-1 truncate text-label text-text-tertiary">
-                        {c.mine ? "Tú: " : ""}
-                        {c.last}
+                      <span className="flex min-w-0 flex-1 items-center gap-1 text-label text-text-tertiary">
+                        {c.mine && !c.peer.demo && <ReadTicks read={c.lastRead} className="shrink-0" />}
+                        <span className="truncate">
+                          {c.mine ? "Tú: " : ""}
+                          {c.last}
+                        </span>
                       </span>
                       {c.unread > 0 && (
                         <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-brand px-1.5 text-overline font-bold text-white">
