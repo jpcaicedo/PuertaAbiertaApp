@@ -215,6 +215,9 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 13. `supabase/migrations/0009_borrar_mensajes.sql` — borrar mensajes como en WhatsApp (para mí / para todos).
 14. `supabase/migrations/0010_textos_notificaciones.sql` — respeta las mayúsculas de los títulos en las notificaciones.
 15. `supabase/migrations/0011_notificaciones_en_vivo.sql` — cada mensaje genera su aviso flotante (sigue habiendo una notificación por conversación).
+16. `supabase/migrations/0012_fotos_audios.sql` — fotos y audios en los chats, en una carpeta privada (`chat`).
+
+**Fotos y audios en el chat.** La cámara manda una foto (reducida a 1600 px); mantener presionado el micrófono graba un audio de hasta 2 minutos, al soltar se envía y deslizando a la izquierda se cancela. Los archivos van a una carpeta privada: solo los abren quien envió y quien recibió, con enlaces temporales. La notificación dice "te envió una foto" o "te envió un audio" y la bandeja muestra "Foto" o "Mensaje de voz (0:12)".
 
 Las actividades que ya empezaron dicen "En curso" y las que terminaron "Ya terminó", quedan al final del día y no permiten inscribirse ni marcar "Voy".
 
