@@ -214,6 +214,7 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 12. `supabase/migrations/0008_actividades_pasadas.sql` — no deja inscribirse a actividades que ya empezaron.
 13. `supabase/migrations/0009_borrar_mensajes.sql` — borrar mensajes como en WhatsApp (para mí / para todos).
 14. `supabase/migrations/0010_textos_notificaciones.sql` — respeta las mayúsculas de los títulos en las notificaciones.
+15. `supabase/migrations/0011_notificaciones_en_vivo.sql` — cada mensaje genera su aviso flotante (sigue habiendo una notificación por conversación).
 
 Las actividades que ya empezaron dicen "En curso" y las que terminaron "Ya terminó", quedan al final del día y no permiten inscribirse ni marcar "Voy".
 

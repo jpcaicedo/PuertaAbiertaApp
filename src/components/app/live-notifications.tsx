@@ -3,7 +3,7 @@
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { X } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { subscribeToChanges } from "@/lib/supabase/realtime";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { markNotificationRead } from "@/lib/notifications/actions";
 import { notificationIcon, toneClasses } from "@/lib/notifications/icons";
@@ -67,27 +67,23 @@ export function LiveNotifications() {
   const userId = user.id;
   React.useEffect(() => {
     if (!isSupabaseConfigured || userId === "demo") return;
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`avisos-flotantes-${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notificaciones", filter: `perfil_id=eq.${userId}` },
-        (payload) => show(payload.new as Incoming),
-      )
-      // Mensajes seguidos de la misma persona actualizan la misma notificación.
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "notificaciones", filter: `perfil_id=eq.${userId}` },
-        (payload) => {
-          const n = payload.new as Incoming;
-          if (!n.leida_en) show(n);
-        },
-      )
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    return subscribeToChanges(`avisos-flotantes-${userId}`, (channel) =>
+      channel
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "notificaciones", filter: `perfil_id=eq.${userId}` },
+          (payload) => show(payload.new as Incoming),
+        )
+        // Mensajes seguidos de la misma persona actualizan la misma notificación.
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "notificaciones", filter: `perfil_id=eq.${userId}` },
+          (payload) => {
+            const n = payload.new as Incoming;
+            if (!n.leida_en) show(n);
+          },
+        ),
+    );
   }, [userId, show]);
 
   React.useEffect(() => () => {

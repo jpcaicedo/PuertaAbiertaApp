@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Bell } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { subscribeToChanges } from "@/lib/supabase/realtime";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useCurrentUser, UserAvatar } from "./current-user";
 
@@ -26,18 +26,13 @@ export function HomeHeader({ hasUnread: forced }: HomeHeaderProps) {
   const userId = user.id;
   React.useEffect(() => {
     if (!isSupabaseConfigured || userId === "demo") return;
-    const supabase = createClient();
-    const channel = supabase
-      .channel(`campana-${userId}`)
-      .on(
+    return subscribeToChanges(`campana-${userId}`, (channel) =>
+      channel.on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notificaciones", filter: `perfil_id=eq.${userId}` },
         () => setLive(true),
-      )
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+      ),
+    );
   }, [userId]);
   return (
     <header className="flex h-16 shrink-0 items-center justify-between px-5">
