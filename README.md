@@ -218,6 +218,7 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 16. `supabase/migrations/0012_fotos_audios.sql` — fotos y audios en los chats, en una carpeta privada (`chat`).
 17. `supabase/migrations/0013_ondas_audio.sql` — guarda la onda de cada mensaje de voz para dibujar las barras.
 18. `supabase/migrations/0014_silenciar_notificaciones.sql` — interruptor general de notificaciones (prendido por defecto).
+19. `supabase/migrations/0015_pqrs.sql` — reportes de daños y PQRS: el vecino envía (con foto opcional en la carpeta privada `pqrs`), la administración cambia el estado (recibido, en proceso, resuelto) con una nota y el vecino recibe la notificación.
 
 En Perfil → Configuración, la fila "Notificaciones" tiene un interruptor general: prendido por defecto; apagado, no llega ninguna notificación (ni el aviso flotante, ni los avisos de la administración). Tocando la fila se eligen los tipos uno por uno.
 

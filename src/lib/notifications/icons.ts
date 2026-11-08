@@ -1,4 +1,4 @@
-import { Bell, Calendar, CircleCheck, Flag, Megaphone, MessageCircle, ShieldAlert, Tag, type LucideIcon } from "lucide-react";
+import { Bell, Calendar, CircleCheck, Flag, Megaphone, MessageCircle, ShieldAlert, Tag, Wrench, type LucideIcon } from "lucide-react";
 import type { NotificationTone } from "@/lib/profile/data";
 
 /** Colores del icono según el tono (N1 y el aviso flotante). */
@@ -17,5 +17,6 @@ export function notificationIcon(n: { kind: string; tone: NotificationTone; titl
   if (n.kind === "marketplace") return Tag;
   if (n.kind === "moderacion") return ShieldAlert;
   if (n.title.startsWith("Reportaron")) return Flag;
+  if (/reporte|PQRS/i.test(n.title)) return Wrench;
   return n.tone === "success" ? CircleCheck : Bell;
 }
