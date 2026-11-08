@@ -86,7 +86,7 @@ export function WaitlistSheets({ activity, onClose }: { activity: CommunityActiv
         onClick={() =>
           startJoin(async () => {
             const p = await agendaActions.joinWaitlist(activity);
-            // 0 = se liberó un cupo y quedó inscrita directamente.
+            // 0 = se liberó un cupo y la inscripción quedó confirmada.
             if (p === 0) close();
             else setPosition(p);
           })
@@ -105,7 +105,7 @@ export function WaitlistSheets({ activity, onClose }: { activity: CommunityActiv
       icon={Bell}
       tone="success"
       title="Estás en la lista de espera"
-      description={`Eres la número ${position}. Te avisamos apenas se libere un cupo en la ${activity.title}.`}
+      description={`Tienes el puesto ${position} en la lista de espera. Te avisamos apenas se libere un cupo en ${activity.title}.`}
     >
       <BottomSheetClose asChild>
         <Button>Volver a la agenda</Button>

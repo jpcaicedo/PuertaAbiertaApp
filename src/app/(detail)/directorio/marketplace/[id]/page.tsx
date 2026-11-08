@@ -52,7 +52,7 @@ export default async function ProductoPage({ params }: Props) {
               {p.seller.name}
               {p.seller.verified && <VerifiedMark />}
             </p>
-            <p className="text-caption text-text-secondary">Vecino verificado, Torre {p.seller.tower}</p>
+            <p className="text-caption text-text-secondary">Identidad verificada · Torre {p.seller.tower}</p>
           </div>
         </div>
 

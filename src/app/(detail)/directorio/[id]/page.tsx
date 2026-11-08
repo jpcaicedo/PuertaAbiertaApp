@@ -33,7 +33,7 @@ export default async function PerfilVecinoPage({ params }: Props) {
         {n.verified && (
           <span className="inline-flex items-center gap-[5px] rounded-[20px] bg-brand-soft py-1 pr-2.5 pl-2 text-overline font-medium text-brand">
             <ShieldCheck className="size-3.5" strokeWidth={2} aria-hidden />
-            {n.feminine ? "Vecina verificada" : "Vecino verificado"} · {n.apartment ? `Apto ${n.apartment}, ` : ""}Torre{" "}
+            {n.feminine === true ? "Vecina verificada" : n.feminine === false ? "Vecino verificado" : "Identidad verificada"} · {n.apartment ? `Apto ${n.apartment}, ` : ""}Torre{" "}
             {n.tower}
           </span>
         )}

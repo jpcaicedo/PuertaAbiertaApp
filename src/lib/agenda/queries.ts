@@ -102,7 +102,7 @@ function toItem(row: Row, attendees: Attendee[], me: string): AgendaItem {
       audienceLabel: extra.audienceLabel as string | undefined,
       goingFromBuilding: going.slice(0, 3),
       goingSummary: n ? `${joinNames(going.slice(0, 3).map((p) => firstName(p.name)))} ${n === 1 ? "va" : "van"}` : "Aún nadie del conjunto",
-      goingCountLabel: n ? `${n === 1 ? "Va" : "Van"} ${n} ${n === 1 ? "familia" : "familias"} de tu conjunto` : "Sé el primero del conjunto en ir",
+      goingCountLabel: n ? `${n === 1 ? "Va" : "Van"} ${n} ${n === 1 ? "familia" : "familias"} de tu conjunto` : "Nadie del conjunto se ha apuntado todavía",
       organizerNote: (extra.organizerNote as string) ?? "",
     };
   }
