@@ -181,6 +181,11 @@ export type Product = {
   description: string;
   delivery: string;
   seller: Neighbor;
+  /** Con Supabase: id del producto, fotos y cuenta del vendedor (null = vendedor de ejemplo). */
+  dbId?: string;
+  images?: string[];
+  ownerId?: string | null;
+  acceptsMessages?: boolean;
 };
 
 const seller = (id: string, name: string, tower: string): Neighbor => ({

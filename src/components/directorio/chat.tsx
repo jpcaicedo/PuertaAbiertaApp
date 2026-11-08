@@ -20,7 +20,7 @@ type ChatScreenProps = {
    * Conversación real en Supabase: quién soy y con quién hablo. Sin esto, el chat es de ejemplo
    * (los mensajes solo se ven en pantalla).
    */
-  remote?: { me: string; peerId: string; acceptsMessages: boolean };
+  remote?: { me: string; peerId: string; acceptsMessages: boolean; productId?: string };
 };
 
 function nowLabel() {
@@ -79,7 +79,7 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
     setDraft("");
     setError(undefined);
     if (!remote) return;
-    void sendMessage(remote.peerId, text).then((r) => {
+    void sendMessage(remote.peerId, text, remote.productId).then((r) => {
       if (r.ok) {
         setMessages((m) => m.map((x) => (x.id === tempId ? { ...x, id: r.id } : x)));
       } else {

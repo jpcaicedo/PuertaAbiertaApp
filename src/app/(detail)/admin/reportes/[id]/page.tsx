@@ -1,18 +1,18 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ReviewReport } from "@/components/admin/report";
-import { getReport, reports } from "@/lib/admin/data";
+import { getReportById } from "@/lib/admin/queries";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 type Props = { params: Promise<{ id: string }> };
-
-export function generateStaticParams() {
-  return reports.map((r) => ({ id: r.id }));
-}
 
 export const metadata = { title: "Revisar reporte · Administración" };
 
 /** X7 · Revisar reporte */
 export default async function RevisarReportePage({ params }: Props) {
-  const r = getReport((await params).id);
+  const r = await getReportById((await params).id);
   if (!r) notFound();
-  return <ReviewReport id={r.id} />;
+  if (!r.open) redirect("/admin");
+  const { open: _open, ...report } = r;
+  void _open;
+  return <ReviewReport report={report} remote={isSupabaseConfigured} />;
 }

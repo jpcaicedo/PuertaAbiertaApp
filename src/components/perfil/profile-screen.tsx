@@ -38,7 +38,7 @@ export function ProfileScreen({ unreadMessages = 0 }: { unreadMessages?: number 
   const visibleName = useVisibleName();
   const { upcoming } = useMyActivity();
   const { listings } = useDirectoryState();
-  const onSale = listings.filter((l) => !l.soldAt).length;
+  const onSale = listings.filter((l) => !l.soldAt && !l.removed).length;
   const [rulesOpen, setRulesOpen] = React.useState(false);
 
   return (

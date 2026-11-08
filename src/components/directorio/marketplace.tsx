@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Armchair, Baby, ChevronRight, Flag, MessageCircle, Package, Shirt, ShoppingCart, Tag } from "lucide-react";
+import { Armchair, Baby, ChevronRight, Flag, MessageCircle, Package, Shirt, ShoppingCart, Tag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BottomSheet,
@@ -16,6 +16,7 @@ import {
 import { formatTimeAgo } from "@/lib/mock-data";
 import { formatPrice, productCategories, products, reportReasons, type Product, type ProductCategory } from "@/lib/directory/data";
 import { directoryActions, useDirectoryState, type MyListing } from "@/lib/directory/store";
+import { reportProduct } from "@/lib/directory/actions";
 import { cn } from "@/lib/utils";
 import { DirectoryHeader } from "./services";
 import { FilterChips, SearchLink, Toast } from "./ui";
@@ -27,12 +28,12 @@ const productFilters: { id: "todos" | ProductCategory; label: string }[] = [
   ...productCategories.filter((c) => c.id !== "otro"),
 ];
 
-export function MarketplaceScreen() {
+export function MarketplaceScreen({ products: all = products }: { products?: Product[] }) {
   const [filter, setFilter] = React.useState<"todos" | ProductCategory>("todos");
   const { listings } = useDirectoryState();
-  const active = listings.filter((l) => !l.soldAt).length;
-  const sold = listings.length - active;
-  const list = products.filter((p) => filter === "todos" || p.category === filter);
+  const active = listings.filter((l) => !l.soldAt && !l.removed).length;
+  const sold = listings.filter((l) => l.soldAt).length;
+  const list = all.filter((p) => filter === "todos" || p.category === filter);
 
   return (
     <DirectoryHeader active="marketplace" action={{ label: "Vender", href: "/directorio/marketplace/vender" }}>
@@ -57,6 +58,11 @@ export function MarketplaceScreen() {
 
       <FilterChips label="Categoría" options={productFilters} value={filter} onChange={setFilter} />
 
+      {list.length === 0 && (
+        <p className="w-full py-10 text-center text-body text-text-secondary">
+          No hay productos en esta categoría. ¿Te sobra algo en casa? Publícalo con «Vender».
+        </p>
+      )}
       <ul className="grid w-full grid-cols-2 gap-x-2 gap-y-4">
         {list.map((p) => (
           <li key={p.id}>
@@ -94,10 +100,12 @@ function ProductCard({ product: p }: { product: Product }) {
 
 /* ───────────────────────── D14 · Reportar publicación ───────────────────────── */
 
-export function ReportButton({ productId }: { productId: string }) {
+export function ReportButton({ productId, dbId }: { productId: string; dbId?: string }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [reason, setReason] = React.useState<string>("");
+  const [error, setError] = React.useState<string>();
+  const [sending, startSend] = React.useTransition();
 
   return (
     <>
@@ -147,15 +155,28 @@ export function ReportButton({ productId }: { productId: string }) {
             ))}
           </fieldset>
 
+          {error && (
+            <p role="alert" className="w-full text-caption text-error">
+              {error}
+            </p>
+          )}
           <Button
-            disabled={!reason}
+            disabled={!reason || sending}
             onClick={() => {
-              // TODO: POST /api/productos/:id/reportes { motivo }
-              setOpen(false);
-              router.push(`/directorio/marketplace/${productId}/reportado`);
+              const done = () => {
+                setOpen(false);
+                router.push(`/directorio/marketplace/${productId}/reportado`);
+              };
+              if (!dbId) return done();
+              setError(undefined);
+              startSend(async () => {
+                const result = await reportProduct(dbId, reason);
+                if (!result.ok) return setError("No pudimos enviar el reporte. Inténtalo de nuevo.");
+                done();
+              });
             }}
           >
-            Enviar reporte
+            {sending ? "Enviando…" : "Enviar reporte"}
           </Button>
           <BottomSheetClose asChild>
             <Button variant="link">Cancelar</Button>
@@ -173,11 +194,15 @@ const listingIcon: Record<ProductCategory, typeof Armchair> = { hogar: Armchair,
 export function MyListingsScreen() {
   const { listings } = useDirectoryState();
   const [confirming, setConfirming] = React.useState<MyListing | null>(null);
+  const [deleting, setDeleting] = React.useState<MyListing | null>(null);
   const [toast, setToast] = React.useState<string | null>(null);
   const clearToast = React.useCallback(() => setToast(null), []);
 
-  const active = listings.filter((l) => !l.soldAt);
-  const sold = listings.filter((l) => l.soldAt).sort((a, b) => (b.soldAt ?? "").localeCompare(a.soldAt ?? ""));
+  const active = listings.filter((l) => !l.soldAt && !l.removed);
+  // Vendidos y retirados por la administración: ya no están en el Marketplace.
+  const sold = listings
+    .filter((l) => l.soldAt || l.removed)
+    .sort((a, b) => (b.soldAt ?? b.publishedAt).localeCompare(a.soldAt ?? a.publishedAt));
   const shortName = (t: string) => t.split(" ").slice(0, 1).join(" ").toLowerCase();
 
   return (
@@ -202,6 +227,7 @@ export function MyListingsScreen() {
                   Marcar como vendido
                 </Button>
               </div>
+              <DeleteLink onClick={() => setDeleting(l)} />
             </article>
           ))
         ) : (
@@ -217,11 +243,12 @@ export function MyListingsScreen() {
       {sold.length > 0 && (
         <section aria-labelledby="vendidos" className="flex w-full flex-col gap-3 pt-3">
           <h2 id="vendidos" className="text-heading font-semibold text-text">
-            Vendidos
+            Ya no están a la venta
           </h2>
           {sold.map((l) => (
-            <article key={l.id} className="w-full rounded-[18px] border border-option-border bg-surface p-3.5">
+            <article key={l.id} className="flex w-full flex-col gap-2 rounded-[18px] border border-option-border bg-surface p-3.5">
               <ListingSummary listing={l} />
+              <DeleteLink onClick={() => setDeleting(l)} />
             </article>
           ))}
         </section>
@@ -258,17 +285,63 @@ export function MyListingsScreen() {
         </BottomSheetContent>
       </BottomSheet>
 
+      {/* ¿Eliminar la publicación? */}
+      <BottomSheet open={deleting !== null} onOpenChange={(o) => !o && setDeleting(null)}>
+        <BottomSheetContent className="gap-4 pt-3 pb-[max(28px,env(safe-area-inset-bottom))]">
+          <div aria-hidden className="flex w-full justify-center">
+            <div className="h-[5px] w-10 rounded-[3px] bg-handle" />
+          </div>
+          <div className="flex w-full flex-col gap-1.5 px-1">
+            <BottomSheetTitle className="text-headline font-bold">¿Eliminar esta publicación?</BottomSheetTitle>
+            <BottomSheetDescription className="text-text-tertiary">
+              «{deleting?.title}» se borra del Marketplace y de tus publicaciones. Los mensajes que te enviaron siguen en tu
+              bandeja.
+            </BottomSheetDescription>
+          </div>
+          <Button
+            className="bg-error text-text-on-dark hover:bg-error/90"
+            onClick={() => {
+              if (!deleting) return;
+              directoryActions.remove(deleting.id);
+              setToast(`Listo. Eliminaste «${deleting.title}».`);
+              setDeleting(null);
+            }}
+          >
+            Sí, eliminar
+          </Button>
+          <BottomSheetClose asChild>
+            <Button variant="link">Cancelar</Button>
+          </BottomSheetClose>
+        </BottomSheetContent>
+      </BottomSheet>
+
       <Toast message={toast} onDone={clearToast} />
     </>
+  );
+}
+
+/** Enlace discreto para eliminar una publicación propia. */
+function DeleteLink({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex cursor-pointer items-center justify-center gap-1.5 self-center rounded-md px-2 py-1 text-label font-medium text-error hover:bg-error/10 outline-none focus-visible:ring-2 focus-visible:ring-brand"
+    >
+      <Trash2 className="size-4" strokeWidth={2} aria-hidden />
+      Eliminar publicación
+    </button>
   );
 }
 
 /** Tile 72 + título 15/22 + precio 17 Bold + fecha 12/16 (+ "Vendido"). */
 function ListingSummary({ listing: l }: { listing: MyListing }) {
   const Icon = l.title.toLowerCase().includes("carrito") ? ShoppingCart : listingIcon[l.category];
-  const isSold = Boolean(l.soldAt);
+  const isSold = Boolean(l.soldAt) || Boolean(l.removed);
   const soldToday = l.soldAt && new Date(l.soldAt).toDateString() === new Date().toDateString();
-  const soldLabel = l.soldAt
+  const soldLabel = l.removed
+    ? `Publicada ${formatTimeAgo(new Date(l.publishedAt)).toLowerCase()}`
+    : l.soldAt
     ? soldToday
       ? "Vendida hoy"
       : `Vendido el ${new Date(l.soldAt).toLocaleDateString("es-CO", { day: "numeric", month: "long" })}`
@@ -276,14 +349,26 @@ function ListingSummary({ listing: l }: { listing: MyListing }) {
 
   return (
     <div className="flex items-center gap-3.5">
-      <span aria-hidden className={cn("grid size-[72px] shrink-0 place-items-center rounded-field", isSold ? "bg-note text-text-tertiary" : "bg-brand-soft text-brand")}>
-        <Icon className="size-6" strokeWidth={2} />
-      </span>
+      {l.image ? (
+        <span className={cn("relative size-[72px] shrink-0 overflow-hidden rounded-field", isSold && "opacity-60")}>
+          <Image src={l.image} alt="" fill sizes="72px" className="object-cover" />
+        </span>
+      ) : (
+        <span aria-hidden className={cn("grid size-[72px] shrink-0 place-items-center rounded-field", isSold ? "bg-note text-text-tertiary" : "bg-brand-soft text-brand")}>
+          <Icon className="size-6" strokeWidth={2} />
+        </span>
+      )}
       <div className="flex min-w-0 flex-1 flex-col items-start">
         <h3 className="text-body font-semibold text-text">{l.title}</h3>
         <p className="text-[17px] leading-6 font-bold text-text">{formatPrice(l.price)}</p>
         <p className="text-overline text-text-tertiary">{soldLabel}</p>
-        {isSold && <span className="mt-1 rounded-[8px] bg-success-soft px-2 py-0.5 text-overline font-semibold text-success">Vendido</span>}
+        {l.removed ? (
+          <span className="mt-1 rounded-[8px] bg-option-orange px-2 py-0.5 text-overline font-semibold text-status-pending">
+            Retirada por la administración
+          </span>
+        ) : (
+          isSold && <span className="mt-1 rounded-[8px] bg-success-soft px-2 py-0.5 text-overline font-semibold text-success">Vendido</span>
+        )}
       </div>
     </div>
   );

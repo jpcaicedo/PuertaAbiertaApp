@@ -2,7 +2,14 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 import { formatTimeRange, parseDay, weekdayLong } from "@/lib/agenda/format";
 import { getZone } from "@/lib/zones/data";
-import { adminRequests, getAdminRequest as demoRequest, type AdminRequest } from "./data";
+import {
+  adminRequests,
+  getAdminRequest as demoRequest,
+  getReport as demoReport,
+  reports as demoReports,
+  type AdminRequest,
+  type Report,
+} from "./data";
 
 /**
  * Solicitudes de la administración (X1–X4) leídas de la vista `solicitudes`.
@@ -142,4 +149,88 @@ export async function getAdminRequest(id: string): Promise<(AdminRequest & { pen
   if (!data) return null;
   const [request] = await enrich([data]);
   return { ...request, pending: data.estado === "pendiente" };
+}
+
+/* ───────────────────────── Reportes (X7, X8) ───────────────────────── */
+
+type ReportRow = {
+  id: string;
+  motivo: string;
+  estado: "abierto" | "retirado" | "mantenido";
+  created_at: string;
+  productos: {
+    titulo: string;
+    precio: number;
+    fotos: string[];
+    perfil_id: string | null;
+    extra: { name?: string; tower?: string };
+  } | null;
+};
+
+const guidanceByReason: Record<string, string> = {
+  "No parece de un vecino del conjunto":
+    "Revisa que quien vende viva en el conjunto. Si no lo reconoces, retírala y habla con portería.",
+  "Producto prohibido o peligroso":
+    "Si la prenda es de uso exclusivo de una institución, o si el producto incumple las normas de la comunidad, retírala. Al vendedor le llega el motivo.",
+  "Precio o información engañosa":
+    "Compara la descripción con las fotos. Si engaña a los compradores, retírala; si es un error menor, mantenla.",
+};
+
+async function toReports(rows: ReportRow[]): Promise<(Report & { open: boolean })[]> {
+  const supabase = await createClient();
+  const owners = [...new Set(rows.map((r) => r.productos?.perfil_id).filter((x): x is string => !!x))];
+  const { data: people } = owners.length
+    ? await supabase.from("perfiles").select("id, nombre, apartamentos ( torres ( nombre ) )").in("id", owners).returns<Person[]>()
+    : { data: [] as Person[] };
+  return rows.map((r) => {
+    const p = r.productos;
+    const owner = people?.find((x) => x.id === p?.perfil_id);
+    const name = owner?.nombre ?? p?.extra?.name ?? "Vecino";
+    const tower = owner?.apartamentos?.torres?.nombre ?? p?.extra?.tower ?? "";
+    const firstName = name.split(/\s+/)[0];
+    return {
+      id: r.id,
+      product: {
+        title: p?.titulo ?? "Publicación",
+        price: p?.precio ?? 0,
+        image: p?.fotos[0] ?? "",
+        seller: tower ? `${firstName}, Torre ${tower}` : firstName,
+        sellerName: firstName,
+      },
+      reason: r.motivo,
+      guidance:
+        guidanceByReason[r.motivo] ??
+        "Revisa la publicación con las normas de la comunidad. Si no las cumple, retírala; al vendedor le llega el motivo.",
+      open: r.estado === "abierto",
+    };
+  });
+}
+
+const REPORT_COLUMNS = "id, motivo, estado, created_at, productos ( titulo, precio, fotos, perfil_id, extra )";
+
+/** X1 · Reportes abiertos, el más antiguo primero. */
+export async function getOpenReports(): Promise<Report[]> {
+  if (!isSupabaseConfigured) return demoReports;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("reportes")
+    .select(REPORT_COLUMNS)
+    .eq("estado", "abierto")
+    .order("created_at")
+    .returns<ReportRow[]>();
+  return toReports(data ?? []);
+}
+
+/** X7/X8 · Un reporte, abierto o ya resuelto. */
+export async function getReportById(id: string): Promise<(Report & { open: boolean }) | null> {
+  if (!isSupabaseConfigured) {
+    const r = demoReport(id);
+    return r ? { ...r, open: true } : null;
+  }
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.from("reportes").select(REPORT_COLUMNS).eq("id", id).maybeSingle<ReportRow>();
+  if (!data) return null;
+  const [report] = await toReports([data]);
+  return report;
 }

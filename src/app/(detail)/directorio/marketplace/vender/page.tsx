@@ -15,6 +15,9 @@ import { community } from "@/lib/mock-data";
 import { useCurrentUser } from "@/components/app/current-user";
 import { productCategories, productConditions, type ProductCategory, type ProductCondition } from "@/lib/directory/data";
 import { directoryActions } from "@/lib/directory/store";
+import { publishProduct } from "@/lib/directory/actions";
+import { uploadProductPhotos } from "@/lib/directory/photos";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 const MAX_PHOTOS = 5;
 type Errors = Partial<Record<"photos" | "title" | "price" | "category" | "condition", string>>;
@@ -26,7 +29,8 @@ const formatMoney = (digits: string) => (digits ? `$${Number(digits).toLocaleStr
 export default function VenderProductoPage() {
   const router = useRouter();
   const fileRef = React.useRef<HTMLInputElement>(null);
-  const [photos, setPhotos] = React.useState<string[]>([]);
+  // Vista previa (blob:) y el archivo que se sube al publicar.
+  const [photos, setPhotos] = React.useState<{ url: string; file: File }[]>([]);
   const [title, setTitle] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [price, setPrice] = React.useState("");
@@ -35,15 +39,21 @@ export default function VenderProductoPage() {
   const user = useCurrentUser();
   const [delivery, setDelivery] = React.useState(`En la portería de la ${user.unitLabel.split(" · ")[0]}`);
   const [errors, setErrors] = React.useState<Errors>({});
+  const [sendError, setSendError] = React.useState<string>();
+  const [sending, startSend] = React.useTransition();
 
-  React.useEffect(() => () => photos.forEach((p) => URL.revokeObjectURL(p)), [photos]);
+  // Libera las vistas previas al salir de la pantalla.
+  const photosRef = React.useRef(photos);
+  photosRef.current = photos;
+  React.useEffect(() => () => photosRef.current.forEach((p) => URL.revokeObjectURL(p.url)), []);
 
   function addPhotos(files: FileList | null) {
     if (!files) return;
-    const urls = Array.from(files)
+    const added = Array.from(files)
+      .filter((f) => f.type.startsWith("image/"))
       .slice(0, MAX_PHOTOS - photos.length)
-      .map((f) => URL.createObjectURL(f));
-    setPhotos((p) => [...p, ...urls]);
+      .map((file) => ({ url: URL.createObjectURL(file), file }));
+    setPhotos((p) => [...p, ...added]);
     setErrors((e) => ({ ...e, photos: undefined }));
   }
 
@@ -57,9 +67,28 @@ export default function VenderProductoPage() {
     if (!condition) found.condition = "Elige el estado.";
     setErrors(found);
     if (Object.keys(found).length) return;
-    // TODO: subir fotos y POST /api/productos
-    directoryActions.addListing({ title: title.trim(), price: Number(price), category: category as ProductCategory, condition: condition as ProductCondition });
-    router.push("/directorio/marketplace/vender/listo");
+    const done = () => router.push("/directorio/marketplace/vender/listo");
+    if (!isSupabaseConfigured) {
+      // Modo demo: queda en el navegador.
+      directoryActions.addListing({ title: title.trim(), price: Number(price), category: category as ProductCategory, condition: condition as ProductCondition });
+      return done();
+    }
+    setSendError(undefined);
+    startSend(async () => {
+      const uploaded = await uploadProductPhotos(photos.map((p) => p.file));
+      if (!uploaded.ok) return setSendError(uploaded.error);
+      const result = await publishProduct({
+        title: title.trim(),
+        description: description.trim(),
+        price: Number(price),
+        category,
+        condition,
+        delivery: delivery.trim(),
+        photos: uploaded.urls,
+      });
+      if (!result.ok) return setSendError(result.error);
+      done();
+    });
   }
 
   const slots = Math.max(3, Math.min(MAX_PHOTOS, photos.length + 1));
@@ -76,7 +105,7 @@ export default function VenderProductoPage() {
           <div className="flex w-full flex-col gap-2">
             <ul aria-label="Fotos del producto" className="flex gap-2 overflow-x-auto [scrollbar-width:none]">
               {Array.from({ length: slots }, (_, i) => {
-                const src = photos[i];
+                const src = photos[i]?.url;
                 return (
                   <li key={i} className="shrink-0">
                     {src ? (
@@ -88,7 +117,12 @@ export default function VenderProductoPage() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => setPhotos((p) => p.filter((_, j) => j !== i))}
+                          onClick={() =>
+                            setPhotos((p) => {
+                              URL.revokeObjectURL(p[i].url);
+                              return p.filter((_, j) => j !== i);
+                            })
+                          }
                           aria-label={`Quitar foto ${i + 1}`}
                           className="absolute top-1 right-1 grid size-6 cursor-pointer place-items-center rounded-full bg-ink/70 text-text-on-dark"
                         >
@@ -162,9 +196,14 @@ export default function VenderProductoPage() {
           </Note>
         </ScreenBody>
 
-        <ActionBar>
-          <Button type="submit" form="vender" className="rounded-[80px]">
-            Publicar producto
+        <ActionBar className="flex-col">
+          {sendError && (
+            <p role="alert" className="w-full text-caption text-error">
+              {sendError}
+            </p>
+          )}
+          <Button type="submit" form="vender" className="rounded-[80px]" disabled={sending}>
+            {sending ? "Subiendo fotos…" : "Publicar producto"}
           </Button>
         </ActionBar>
       </form>

@@ -207,6 +207,8 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 5. `supabase/migrations/0003_solicitudes.sql` — reservas de zonas, actividades propuestas por vecinos y solicitudes para la administración.
 6. `supabase/migrations/0004_directorio.sql` — servicios, mensajes en vivo, preferencias del perfil y la carpeta de fotos (`avatares`).
 7. `supabase/seed_0004.sql` — los tres servicios de ejemplo (Camila, Juan y Marta, sin cuenta).
+8. `supabase/migrations/0005_marketplace.sql` — productos, reportes y la carpeta de fotos (`productos`).
+9. `supabase/seed_0005.sql` — los cuatro productos de ejemplo y un reporte para la administración.
 
 Para copiar un archivo, ábrelo en VS Code o en el Bloc de notas y usa Ctrl+A y Ctrl+C. Desde Git Bash, `clip` daña las tildes.
 
@@ -241,4 +243,6 @@ Cada código sirve una sola vez. Para reutilizarlo, borra el usuario en Authenti
 
 Los servicios de ejemplo no tienen cuenta: su chat es el de muestra y no le llega a nadie.
 
-Siguen con datos de ejemplo: marketplace, reportes, notificaciones y la recuperación de contraseña.
+**Bloque 5.** Marketplace: publicar con hasta 5 fotos (se reducen a 1200 px y se guardan en Storage), escribirle al vendedor (el mensaje queda ligado al producto), marcar como vendido, eliminar y Mis publicaciones con cuántos vecinos escribieron. Los servicios propios del Directorio también se pueden eliminar desde su perfil (papelera). Reportes: el vecino reporta sin que se sepa quién fue; la administración los revisa en `/admin` y puede retirar la publicación o mantenerla.
+
+Siguen con datos de ejemplo: notificaciones y la recuperación de contraseña.

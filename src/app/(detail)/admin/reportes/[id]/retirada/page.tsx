@@ -1,18 +1,14 @@
 import { notFound } from "next/navigation";
 import { AdminConfirmation } from "@/components/admin/ui";
-import { getReport, reports } from "@/lib/admin/data";
+import { getReportById } from "@/lib/admin/queries";
 
 type Props = { params: Promise<{ id: string }> };
-
-export function generateStaticParams() {
-  return reports.map((r) => ({ id: r.id }));
-}
 
 export const metadata = { title: "Publicación retirada · Administración" };
 
 /** X8 · Publicación retirada */
 export default async function RetiradaPage({ params }: Props) {
-  const r = getReport((await params).id);
+  const r = await getReportById((await params).id);
   if (!r) notFound();
   return (
     <AdminConfirmation
