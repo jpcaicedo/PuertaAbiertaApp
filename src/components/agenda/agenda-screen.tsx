@@ -7,13 +7,13 @@ import { Calendar, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HomeHeader } from "@/components/app/home-header";
 import { Screen } from "@/components/app/screen";
-import { agendaItems, type AgendaItem, type Category, type CommunityActivity, type TimeOfDay } from "@/lib/agenda/data";
+import { type AgendaItem, type Category, type CommunityActivity, type TimeOfDay } from "@/lib/agenda/data";
 import { parseDay, spotsLeft, timeOfDay, weekdayLong, weekdayShort, weekOf } from "@/lib/agenda/format";
 import { cn } from "@/lib/utils";
 import { ActivityListCard, NeighborhoodEventCard } from "./cards";
 import { FilterSheet, ProposeSheet, WaitlistSheets, type AgendaFilters } from "./sheets";
 
-type Props = { day: string; filters: AgendaFilters };
+type Props = { day: string; filters: AgendaFilters; items: AgendaItem[] };
 
 /** Atajos de categoría visibles en la pantalla (el resto está en Filtrar). */
 const quickCategories: { id: Category; label: string }[] = [
@@ -39,7 +39,7 @@ function toQuery(day: string, f: AgendaFilters) {
 }
 
 /** A1 · Agenda (484:2381) · A2b · Día sin actividades (484:2533) · y las hojas A2, A5, A5b y A13. */
-export function AgendaScreen({ day, filters }: Props) {
+export function AgendaScreen({ day, filters, items }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const [filterOpen, setFilterOpen] = React.useState(false);
@@ -47,7 +47,7 @@ export function AgendaScreen({ day, filters }: Props) {
   const [waitlistFor, setWaitlistFor] = React.useState<CommunityActivity | null>(null);
 
   const week = weekOf(day);
-  const dayItems = agendaItems.filter((i) => i.date === day).sort((a, b) => a.start.localeCompare(b.start));
+  const dayItems = items.filter((i) => i.date === day).sort((a, b) => a.start.localeCompare(b.start));
   const visible = applyFilters(dayItems, filters);
   const hasAdvancedFilters = filters.times.length > 0 || filters.onlyWithSpots || filters.categories.length > 1;
   const href = (d: string, f: AgendaFilters = filters) => `${pathname}${toQuery(d, f)}`;
@@ -79,7 +79,7 @@ export function AgendaScreen({ day, filters }: Props) {
         <nav aria-label="Días de la semana" className="flex w-full justify-between">
           {week.map((d) => {
             const selected = d === day;
-            const hasItems = agendaItems.some((i) => i.date === d);
+            const hasItems = items.some((i) => i.date === d);
             return (
               <Link
                 key={d}

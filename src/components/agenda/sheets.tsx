@@ -62,6 +62,7 @@ export function ResultSheet({ open, onOpenChange, icon, tone, title, summary, de
 
 export function WaitlistSheets({ activity, onClose }: { activity: CommunityActivity | null; onClose: () => void }) {
   const [position, setPosition] = React.useState<number | null>(null);
+  const [joining, startJoin] = React.useTransition();
   const open = activity !== null;
 
   function close() {
@@ -80,7 +81,19 @@ export function WaitlistSheets({ activity, onClose }: { activity: CommunityActiv
       title="Cupos llenos"
       description={`La ${activity.title} ya tiene ${activity.enrolled} de ${activity.capacity} inscritos. Si alguien cancela, te avisamos y tienes 2 horas para confirmar tu cupo.`}
     >
-      <Button onClick={() => setPosition(agendaActions.joinWaitlist(activity.id))}>Unirme a la lista de espera</Button>
+      <Button
+        disabled={joining}
+        onClick={() =>
+          startJoin(async () => {
+            const p = await agendaActions.joinWaitlist(activity);
+            // 0 = se liberó un cupo y quedó inscrita directamente.
+            if (p === 0) close();
+            else setPosition(p);
+          })
+        }
+      >
+        {joining ? "Uniéndote…" : "Unirme a la lista de espera"}
+      </Button>
       <BottomSheetClose asChild>
         <Button variant="link">Ahora no</Button>
       </BottomSheetClose>

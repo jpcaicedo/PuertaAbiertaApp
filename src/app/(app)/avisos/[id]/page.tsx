@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/app/badge";
 import { Screen, ScreenActions, ScreenBody, ScreenHeader, ScreenTitle } from "@/components/app/screen";
 import { ShareNotice } from "@/components/app/share-notice";
-import { formatTimeAgo, getNotice } from "@/lib/mock-data";
+import { formatTimeAgo } from "@/lib/mock-data";
+import { getNotice } from "@/lib/notices/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
-  const notice = getNotice(id);
+  const notice = await getNotice(id);
   return { title: notice ? `${notice.title} · Puerta Abierta` : "Aviso · Puerta Abierta" };
 }
 
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: Props) {
 export default async function AvisoPage({ params }: Props) {
   const { id } = await params;
   const now = new Date();
-  const notice = getNotice(id, now);
+  const notice = await getNotice(id);
   if (!notice) notFound();
 
   return (
@@ -37,8 +38,8 @@ export default async function AvisoPage({ params }: Props) {
 
         <dl className="flex w-full flex-col gap-3 rounded-[20px] bg-surface p-4 shadow-card">
           <InfoRow icon={Calendar} label="Fecha" value={notice.dateLabel} />
-          <InfoRow icon={Clock} label="Horario" value={notice.timeLabel} />
-          <InfoRow icon={MapPin} label="Lugar" value={notice.placeLabel} />
+          {notice.timeLabel && <InfoRow icon={Clock} label="Horario" value={notice.timeLabel} />}
+          {notice.placeLabel && <InfoRow icon={MapPin} label="Lugar" value={notice.placeLabel} />}
         </dl>
 
         <p className="text-body text-text-secondary">{notice.body}</p>

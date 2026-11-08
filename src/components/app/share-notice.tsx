@@ -27,6 +27,8 @@ type ShareNoticeProps = {
 /** Botón "Compartir" + hoja I3 · Compartir aviso (484:5023). */
 export function ShareNotice({ notice, variant, className }: ShareNoticeProps) {
   const [open, setOpen] = React.useState(false);
+  // Avisos marcados "Solo residentes" por la administración.
+  if (notice.shareable === false) return null;
 
   return (
     <>

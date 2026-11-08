@@ -79,6 +79,10 @@ export type Notice = {
   body: string;
   /** Resumen de una línea para el mensaje que se comparte por WhatsApp, SMS o correo. */
   shareSummary: string;
+  /** false = "Solo residentes": no se muestra el botón Compartir. */
+  shareable?: boolean;
+  /** "todos" o la torre a la que va dirigido. */
+  audience?: string;
 };
 
 const HOUR = 60 * 60 * 1000;

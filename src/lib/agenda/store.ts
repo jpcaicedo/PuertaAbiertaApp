@@ -1,27 +1,51 @@
 "use client";
 
+import * as React from "react";
 import { useSyncExternalStore } from "react";
+import { cancelEnrollment, enrollActivity, setGoing } from "./actions";
 
 /**
- * Estado del usuario en la Agenda (mock en el navegador).
- * TODO: reemplazar por llamadas a la API:
- *   POST   /api/actividades/:id/inscripcion
- *   DELETE /api/actividades/:id/inscripcion
- *   POST   /api/actividades/:id/lista-espera
- *   POST   /api/eventos-barrio/:id/voy
+ * Estado del usuario en la Agenda: inscrito, lista de espera y "voy".
+ * · Con Supabase: llega del servidor (<AgendaStateProvider>) y los cambios se guardan con server actions.
+ *   La pantalla cambia al instante y se corrige sola cuando responde el servidor.
+ * · Modo demo: vive en sessionStorage, como en el prototipo.
  */
-type AgendaState = {
+export type AgendaState = {
+  /** slugs */
   enrolled: string[];
-  /** id → puesto en la lista de espera */
+  /** slug → puesto en la lista de espera */
   waitlist: Record<string, number>;
   going: string[];
 };
+
+/** Lo mínimo de una actividad que necesitan las acciones. */
+type Target = { id: string; dbId?: string };
 
 const KEY = "pa.agenda";
 const empty: AgendaState = { enrolled: [], waitlist: {}, going: [] };
 let state: AgendaState = empty;
 let loaded = false;
+/** true cuando el estado viene del servidor: no se lee ni se escribe sessionStorage. */
+let remote = false;
+let hydratedFrom: AgendaState | null = null;
 const listeners = new Set<() => void>();
+
+const ServerState = React.createContext<AgendaState | null>(null);
+
+/** Entrega al cliente lo que el usuario tiene en la agenda (leído en el servidor). */
+export function AgendaStateProvider({ value, children }: { value: AgendaState; children: React.ReactNode }) {
+  // Se sincroniza en el render para que la primera pintura ya muestre "Ya estás inscrita".
+  if (typeof window !== "undefined" && hydratedFrom !== value) {
+    hydratedFrom = value;
+    remote = true;
+    loaded = true;
+    state = value;
+  }
+  React.useEffect(() => {
+    listeners.forEach((l) => l());
+  }, [value]);
+  return React.createElement(ServerState.Provider, { value }, children);
+}
 
 function load() {
   if (loaded || typeof window === "undefined") return;
@@ -36,10 +60,12 @@ function load() {
 
 function set(next: AgendaState) {
   state = next;
-  try {
-    window.sessionStorage.setItem(KEY, JSON.stringify(state));
-  } catch {
-    /* ignorar */
+  if (!remote) {
+    try {
+      window.sessionStorage.setItem(KEY, JSON.stringify(state));
+    } catch {
+      /* ignorar */
+    }
   }
   listeners.forEach((l) => l());
 }
@@ -51,33 +77,63 @@ function subscribe(listener: () => void) {
 }
 
 export function useAgendaState() {
+  const server = React.useContext(ServerState);
   return useSyncExternalStore(
     subscribe,
     () => (load(), state),
-    () => empty,
+    () => server ?? empty,
   );
 }
 
+const without = <T,>(list: T[], x: T) => list.filter((y) => y !== x);
+const withoutKey = (rec: Record<string, number>, k: string) => {
+  const { [k]: _omit, ...rest } = rec;
+  void _omit;
+  return rest;
+};
+
 export const agendaActions = {
-  enroll(id: string) {
+  enroll(item: Target) {
     load();
-    if (!state.enrolled.includes(id)) set({ ...state, enrolled: [...state.enrolled, id] });
+    if (!state.enrolled.includes(item.id)) set({ ...state, enrolled: [...state.enrolled, item.id] });
+    if (item.dbId) {
+      void enrollActivity(item.dbId).then((r) => {
+        // Si alguien tomó el último cupo antes, el servidor lo deja en lista de espera.
+        if (r.ok && r.status === "espera" && r.position) {
+          set({
+            ...state,
+            enrolled: without(state.enrolled, item.id),
+            waitlist: { ...state.waitlist, [item.id]: r.position },
+          });
+        }
+      });
+    }
   },
-  cancel(id: string) {
+  cancel(item: Target) {
     load();
-    set({ ...state, enrolled: state.enrolled.filter((x) => x !== id) });
+    set({ ...state, enrolled: without(state.enrolled, item.id), waitlist: withoutKey(state.waitlist, item.id) });
+    if (item.dbId) void cancelEnrollment(item.dbId);
   },
   /** Devuelve el puesto asignado en la lista de espera. */
-  joinWaitlist(id: string) {
+  async joinWaitlist(item: Target): Promise<number> {
     load();
-    // Mock: ya hay 2 personas esperando antes que tú.
-    const position = state.waitlist[id] ?? 3;
-    set({ ...state, waitlist: { ...state.waitlist, [id]: position } });
+    let position = state.waitlist[item.id] ?? 3; // demo: ya hay 2 personas antes
+    if (item.dbId) {
+      const r = await enrollActivity(item.dbId);
+      if (r.ok && r.status === "inscrito") {
+        // Se liberó un cupo mientras tanto.
+        set({ ...state, enrolled: [...without(state.enrolled, item.id), item.id] });
+        return 0;
+      }
+      position = r.ok && r.position ? r.position : 1;
+    }
+    set({ ...state, waitlist: { ...state.waitlist, [item.id]: position } });
     return position;
   },
-  toggleGoing(id: string) {
+  toggleGoing(item: Target) {
     load();
-    const going = state.going.includes(id) ? state.going.filter((x) => x !== id) : [...state.going, id];
-    set({ ...state, going });
+    const isGoing = state.going.includes(item.id);
+    set({ ...state, going: isGoing ? without(state.going, item.id) : [...state.going, item.id] });
+    if (item.dbId) void setGoing(item.dbId, !isGoing);
   },
 };
