@@ -256,7 +256,22 @@ export function formatPrice(n: number) {
 
 /* ───────────────────────────── Chats de ejemplo ───────────────────────────── */
 
-export type ChatMessage = { id: string; mine: boolean; text: string; time: string };
+export type ChatMessage = {
+  id: string;
+  mine: boolean;
+  text: string;
+  time: string;
+  /** Texto (por defecto), foto o audio. */
+  kind?: "text" | "photo" | "audio";
+  /** Enlace temporal a la foto o el audio (carpeta privada "chat"). */
+  media?: string;
+  /** Ruta del archivo en Storage, para borrarlo con "Eliminar para todos". */
+  path?: string;
+  /** Duración del audio en segundos. */
+  duration?: number;
+  /** Subiéndose todavía. */
+  sending?: boolean;
+};
 
 export const sampleChats: Record<string, ChatMessage[]> = {
   camila: [

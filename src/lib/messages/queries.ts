@@ -20,6 +20,9 @@ type Row = {
   leido_en: string | null;
   oculto_para_receptor: boolean;
   oculto_para_emisor: boolean;
+  tipo: "texto" | "foto" | "audio";
+  adjunto: string | null;
+  duracion: number | null;
 };
 type PersonRow = {
   id: string;
@@ -43,7 +46,18 @@ export type Peer = {
 
 export type Conversation = { peer: Peer; last: string; lastAt: string; unread: number; mine: boolean };
 
-const COLUMNS = "id, de, para, para_demo, texto, created_at, leido_en, oculto_para_receptor, oculto_para_emisor";
+const COLUMNS =
+  "id, de, para, para_demo, texto, created_at, leido_en, oculto_para_receptor, oculto_para_emisor, tipo, adjunto, duracion";
+
+/** "0:12" */
+export const formatDuration = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+
+/** Lo que se ve en la bandeja: el texto, o "Foto" / "Mensaje de voz (0:12)". */
+export function previewText(m: { tipo: string; texto: string; duracion: number | null }) {
+  if (m.tipo === "foto") return m.texto.trim() ? `Foto · ${m.texto}` : "Foto";
+  if (m.tipo === "audio") return `Mensaje de voz${m.duracion != null ? ` (${formatDuration(m.duracion)})` : ""}`;
+  return m.texto;
+}
 const UUID = /^[0-9a-f-]{36}$/i;
 const DEMO = /^demo-([sp])-([a-z0-9-]+)$/;
 
@@ -119,12 +133,27 @@ async function demoPeers(targets: string[]): Promise<Peer[]> {
   return [...build("s", s), ...build("p", p)];
 }
 
-const toMessage = (m: Row, me: string): ChatMessage => ({
+const toMessage = (m: Row, me: string, urls: Map<string, string>): ChatMessage => ({
   id: m.id,
   mine: m.de === me,
   text: m.texto,
   time: chatTime(m.created_at),
+  kind: m.tipo === "foto" ? "photo" : m.tipo === "audio" ? "audio" : "text",
+  media: m.adjunto ? urls.get(m.adjunto) : undefined,
+  path: m.adjunto ?? undefined,
+  duration: m.duracion ?? undefined,
 });
+
+/** Enlaces temporales (1 h) para las fotos y audios de la conversación. */
+async function signMedia(rows: Row[]): Promise<Map<string, string>> {
+  const paths = rows.map((r) => r.adjunto).filter((p): p is string => !!p);
+  if (!paths.length) return new Map();
+  const supabase = await createClient();
+  const { data } = await supabase.storage.from("chat").createSignedUrls(paths, 3600);
+  const urls = new Map<string, string>();
+  for (const d of data ?? []) if (d.path && d.signedUrl) urls.set(d.path, d.signedUrl);
+  return urls;
+}
 
 /** D4 · Conversación con un vecino (real o de ejemplo). Marca como leídos los mensajes que llegaron. */
 export async function getConversation(peerKey: string): Promise<{ me: string; peer: Peer; messages: ChatMessage[] } | null> {
@@ -145,7 +174,8 @@ export async function getConversation(peerKey: string): Promise<{ me: string; pe
       .order("created_at")
       .limit(300)
       .returns<Row[]>();
-    return { me, peer, messages: (data ?? []).map((m) => toMessage(m, me)) };
+    const urls = await signMedia(data ?? []);
+    return { me, peer, messages: (data ?? []).map((m) => toMessage(m, me, urls)) };
   }
 
   if (!UUID.test(peerKey)) return null;
@@ -166,7 +196,8 @@ export async function getConversation(peerKey: string): Promise<{ me: string; pe
     await supabase.from("mensajes").update({ leido_en: new Date().toISOString() }).eq("de", peerKey).eq("para", me).is("leido_en", null);
   }
 
-  return { me, peer, messages: (data ?? []).map((m) => toMessage(m, me)) };
+  const urls = await signMedia(data ?? []);
+  return { me, peer, messages: (data ?? []).map((m) => toMessage(m, me, urls)) };
 }
 
 /** Bandeja de mensajes: la última línea de cada conversación, la más reciente primero. */
@@ -199,7 +230,7 @@ export async function getInbox(): Promise<Conversation[] | null> {
   return [...real, ...demo]
     .map((peer) => {
       const { last, unread } = byPeer.get(peer.id)!;
-      return { peer, last: last.texto, lastAt: last.created_at, unread, mine: last.de === me };
+      return { peer, last: previewText(last), lastAt: last.created_at, unread, mine: last.de === me };
     })
     .sort((a, b) => b.lastAt.localeCompare(a.lastAt));
 }

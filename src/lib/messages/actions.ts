@@ -8,18 +8,29 @@ import { demoKeyToTarget } from "./queries";
  * D4 · Enviar mensaje. `to` es el id del vecino o "demo-s-camila" para un vecino de ejemplo.
  * La base de datos verifica que sea del conjunto y que acepte mensajes.
  */
+export type Attachment = { kind: "photo" | "audio"; path: string; duration?: number };
+
 export async function sendMessage(
   to: string,
   text: string,
   productId?: string,
+  attachment?: Attachment,
 ): Promise<{ ok: true; id: string; createdAt: string } | { ok: false; error: string }> {
   const body = text.trim();
-  if (!body) return { ok: false, error: "Escribe un mensaje." };
+  if (!body && !attachment) return { ok: false, error: "Escribe un mensaje." };
   if (body.length > 1000) return { ok: false, error: "El mensaje es muy largo." };
   const demo = demoKeyToTarget(to);
   const supabase = await createClient();
-  const row: Record<string, string> = demo ? { para_demo: demo, texto: body } : { para: to, texto: body };
+  const row: Record<string, string | number> = demo ? { para_demo: demo, texto: body } : { para: to, texto: body };
   if (productId) row.producto_id = productId;
+  if (attachment) {
+    const user = await getSessionUser();
+    // Solo archivos de la propia carpeta (la base de datos también lo revisa).
+    if (!user || !attachment.path.startsWith(`${user.id}/`)) return { ok: false, error: "No se pudo enviar el archivo." };
+    row.tipo = attachment.kind === "photo" ? "foto" : "audio";
+    row.adjunto = attachment.path;
+    if (attachment.duration != null) row.duracion = Math.round(attachment.duration);
+  }
   const { data, error } = await supabase.from("mensajes").insert(row).select("id, created_at").single();
   if (error || !data) {
     return {
@@ -51,7 +62,10 @@ export async function deleteMessage(id: string, scope: "me" | "all"): Promise<{ 
   const user = await getSessionUser();
   if (!user) return { ok: false };
   if (scope === "all") {
-    const { data, error } = await supabase.from("mensajes").delete().eq("id", id).eq("de", user.id).select("id");
+    const { data, error } = await supabase.from("mensajes").delete().eq("id", id).eq("de", user.id).select("id, adjunto");
+    // Si llevaba foto o audio, también se borra el archivo.
+    const path = data?.[0]?.adjunto as string | null | undefined;
+    if (path) await supabase.storage.from("chat").remove([path]);
     revalidatePath("/", "layout");
     return { ok: !error && (data?.length ?? 0) > 0 };
   }
