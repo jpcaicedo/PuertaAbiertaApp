@@ -19,12 +19,12 @@ import { Avatar } from "@/components/directorio/ui";
 import { PageHeading } from "@/components/perfil/ui";
 import {
   adminRequests,
-  getAdminRequest,
   requestKindLabel,
   type AdminRequest,
   type RequestKind,
 } from "@/lib/admin/data";
 import { adminActions, useAdminState } from "@/lib/admin/store";
+import { decideRequest } from "@/lib/admin/actions";
 import { cn } from "@/lib/utils";
 import { AdminActionBar, Fact, Tag } from "./ui";
 
@@ -67,9 +67,10 @@ function RequestCard({ r }: { r: AdminRequest }) {
 }
 
 /** X2 · Solicitudes (484:5713) */
-export function RequestsScreen({ filter }: { filter: RequestFilter }) {
+export function RequestsScreen({ filter, requests }: { filter: RequestFilter; requests?: AdminRequest[] }) {
   const state = useAdminState();
-  const pending = adminRequests.filter((r) => !state.decisions[r.id]);
+  // Con Supabase llegan solo las pendientes; en modo demo se filtran las decididas en el navegador.
+  const pending = requests ?? adminRequests.filter((r) => !state.decisions[r.id]);
   const count = (k: RequestKind | null) => pending.filter((r) => !k || r.kind === k).length;
   const visible = pending.filter((r) => !filterKind[filter] || r.kind === filterKind[filter]);
 
@@ -140,7 +141,7 @@ function DecisionSheet({
   kind: SheetKind;
   r: AdminRequest;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: (message: string) => void;
 }) {
   const [message, setMessage] = React.useState("");
   const [error, setError] = React.useState<string>();
@@ -152,7 +153,7 @@ function DecisionSheet({
       setError(propose ? "Escribe qué fecha u hora propones." : "Cuéntale al vecino por qué.");
       return;
     }
-    onConfirm();
+    onConfirm(message.trim());
   }
 
   return (
@@ -190,21 +191,32 @@ function DecisionSheet({
 }
 
 /** X3 · Revisar solicitud (484:5799) → X4 */
-export function ReviewRequest({ id }: { id: string }) {
-  const r = getAdminRequest(id)!;
+export function ReviewRequest({ request: r, remote }: { request: AdminRequest; remote: boolean }) {
   const router = useRouter();
   const [sheet, setSheet] = React.useState<SheetKind>(null);
   const [sheetKey, setSheetKey] = React.useState(0);
+  const [error, setError] = React.useState<string>();
+  const [saving, startSave] = React.useTransition();
 
   function open(kind: Exclude<SheetKind, null>) {
     setSheetKey((k) => k + 1);
     setSheet(kind);
   }
 
-  function decide(decision: "approved" | "rejected" | "proposed") {
-    // TODO: POST /api/admin/solicitudes/:id/{aprobar|rechazar|proponer}
-    adminActions.decide(r.id, decision);
-    router.push(decision === "approved" ? `/admin/solicitudes/${r.id}/aprobada` : "/admin/solicitudes");
+  function decide(decision: "approved" | "rejected" | "proposed", message?: string) {
+    const next = decision === "approved" ? `/admin/solicitudes/${r.id}/aprobada` : "/admin/solicitudes";
+    if (!remote) {
+      // Modo demo: la decisión queda en el navegador.
+      adminActions.decide(r.id, decision);
+      return router.push(next);
+    }
+    setError(undefined);
+    startSave(async () => {
+      const result = await decideRequest(r.id, decision, message);
+      setSheet(null);
+      if (!result.ok) return setError(result.error);
+      router.push(next);
+    });
   }
 
   return (
@@ -272,7 +284,14 @@ export function ReviewRequest({ id }: { id: string }) {
       </div>
 
       <AdminActionBar>
-        <Button onClick={() => decide("approved")}>Aprobar</Button>
+        {error && (
+          <p role="alert" className="text-caption text-error">
+            {error}
+          </p>
+        )}
+        <Button onClick={() => decide("approved")} disabled={saving}>
+          {saving ? "Guardando…" : "Aprobar"}
+        </Button>
         <div className="flex w-full gap-2">
           <Button variant="secondary" className="min-w-0 flex-1" onClick={() => open("propose")}>
             Proponer otra fecha
@@ -288,7 +307,7 @@ export function ReviewRequest({ id }: { id: string }) {
         kind={sheet}
         r={r}
         onOpenChange={(o) => !o && setSheet(null)}
-        onConfirm={() => decide(sheet === "propose" ? "proposed" : "rejected")}
+        onConfirm={(message) => decide(sheet === "propose" ? "proposed" : "rejected", message)}
       />
     </Screen>
   );

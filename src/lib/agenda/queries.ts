@@ -2,7 +2,8 @@ import { cache } from "react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 import { agendaItems, type AgendaItem, type Category, type Person } from "./data";
-import { formatWhen, spotsLeft } from "./format";
+import { formatTimeRange, formatWhen, spotsLeft } from "./format";
+import { getZone, ofZone } from "@/lib/zones/data";
 import type { AgendaState } from "./store";
 import type { Activity } from "@/lib/mock-data";
 import { nextActivity as demoNextActivity } from "@/lib/mock-data";
@@ -226,12 +227,111 @@ export type MyAgendaEntry = {
   href: string;
 };
 
-/** P2 · Mis inscripciones de la agenda (inscrito, en espera o "voy"). */
+type MyReservation = {
+  id: string;
+  zona: string;
+  lugar: string;
+  fecha: string;
+  inicio: string;
+  fin: string;
+  tipo: "privada" | "comunidad" | "turno";
+  estado: "pendiente" | "aprobada" | "propuesta" | "rechazada" | "cancelada";
+  respuesta: string | null;
+  actividad_id: string | null;
+};
+
+type MyProposal = {
+  id: string;
+  slug: string;
+  titulo: string;
+  fecha: string;
+  inicio: string;
+  fin: string;
+  lugar: string;
+  estado: "pendiente" | "publicada" | "propuesta" | "rechazada" | "cancelada";
+  respuesta: string | null;
+};
+
+const answer = (label: string, message: string | null) => (message ? `${label}: ${message}` : label);
+
+/** Reservas de zonas y actividades que organiza el usuario, con el estado de la administración. */
+async function myRequests(me: string): Promise<MyAgendaEntry[]> {
+  const supabase = await createClient();
+  const [{ data: reservations }, { data: proposals }] = await Promise.all([
+    supabase
+      .from("reservas")
+      .select("id, zona, lugar, fecha, inicio, fin, tipo, estado, respuesta, actividad_id")
+      .eq("perfil_id", me)
+      .neq("estado", "cancelada")
+      .returns<MyReservation[]>(),
+    supabase
+      .from("actividades")
+      .select("id, slug, titulo, fecha, inicio, fin, lugar, estado, respuesta")
+      .eq("organizador_id", me)
+      .neq("estado", "cancelada")
+      .returns<MyProposal[]>(),
+  ]);
+
+  const fromReservations = (reservations ?? [])
+    // Si era para la comunidad y se aprobó, ya aparece como actividad que organiza.
+    .filter((r) => !r.actividad_id)
+    .flatMap((r): MyAgendaEntry[] => {
+      const zone = getZone(r.zona);
+      if (!zone) return [];
+      const isTurn = r.tipo === "turno";
+      const range = formatTimeRange(hhmm(r.inicio), hhmm(r.fin));
+      return [
+        {
+          id: `reserva-${r.id}`,
+          day: r.fecha,
+          title: isTurn ? `Turno en ${zone.withArticle}` : `Reserva ${ofZone(zone)}`,
+          detail: `De ${range}`,
+          status: r.estado === "rechazada" ? "past" : r.estado === "aprobada" ? "confirmed" : "pending",
+          statusLabel:
+            r.estado === "aprobada"
+              ? isTurn
+                ? "Turno confirmado"
+                : "Reserva confirmada"
+              : r.estado === "propuesta"
+                ? answer("La administración propone", r.respuesta)
+                : r.estado === "rechazada"
+                  ? answer("No aprobada", r.respuesta)
+                  : "En revisión de la administración",
+          href: `/zonas-comunes/${zone.id}`,
+        },
+      ];
+    });
+
+  const fromProposals = (proposals ?? []).map(
+    (a): MyAgendaEntry => ({
+      id: `organiza-${a.id}`,
+      day: a.fecha,
+      title: a.titulo,
+      detail: `Organizas tú. ${a.lugar}, de ${formatTimeRange(hhmm(a.inicio), hhmm(a.fin))}`,
+      status: a.estado === "publicada" ? "confirmed" : a.estado === "rechazada" ? "past" : "pending",
+      statusLabel:
+        a.estado === "publicada"
+          ? "Publicada en la Agenda"
+          : a.estado === "propuesta"
+            ? answer("La administración propone", a.respuesta)
+            : a.estado === "rechazada"
+              ? answer("No aprobada", a.respuesta)
+              : "En revisión de la administración",
+      href: a.estado === "publicada" ? `/agenda/${a.slug}` : `/agenda?dia=${a.fecha}`,
+    }),
+  );
+
+  return [...fromReservations, ...fromProposals];
+}
+
+/** P2 · Mis reservas y actividades: inscripciones, reservas y planes que organiza. */
 export async function getMyAgenda(): Promise<MyAgendaEntry[] | null> {
   if (!isSupabaseConfigured) return null;
-  const { items, mine } = await load({});
+  const { items, mine, me } = await load({});
   const today = colombiaToday();
-  return items.flatMap((i) => {
+  const requests = me ? await myRequests(me) : [];
+  const organized = new Set(requests.map((r) => r.href));
+  const enrolledEntries = items.flatMap((i) => {
     const enrolled = mine.enrolled.includes(i.id) || mine.going.includes(i.id);
     const waiting = mine.waitlist[i.id];
     if (!enrolled && !waiting) return [];
@@ -254,4 +354,6 @@ export async function getMyAgenda(): Promise<MyAgendaEntry[] | null> {
       } satisfies MyAgendaEntry,
     ];
   });
+  // Si se inscribió en su propia actividad, se muestra una sola vez.
+  return [...requests, ...enrolledEntries.filter((e) => !organized.has(e.href))];
 }

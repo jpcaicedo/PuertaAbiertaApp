@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { TurnBooking } from "@/components/zonas/turn-booking";
 import { ZoneDetail } from "@/components/zonas/zone-detail";
-import { getZone, zones } from "@/lib/zones/data";
+import { getZone, zones, zonesToday } from "@/lib/zones/data";
+import { getZoneOccupancy } from "@/lib/zones/queries";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -21,6 +22,10 @@ export async function generateMetadata({ params }: Props) {
 export default async function ZonaPage({ params, searchParams }: Props) {
   const zone = getZone((await params).id);
   if (!zone) notFound();
-  if (zone.booking === "slots") return <TurnBooking zoneId={zone.id} initialStart={(await searchParams).turno} />;
+  if (zone.booking === "slots") {
+    const today = zonesToday();
+    const occupancy = await getZoneOccupancy(zone.id, today, today);
+    return <TurnBooking zoneId={zone.id} initialStart={(await searchParams).turno} occupancy={occupancy} />;
+  }
   return <ZoneDetail zone={zone} />;
 }

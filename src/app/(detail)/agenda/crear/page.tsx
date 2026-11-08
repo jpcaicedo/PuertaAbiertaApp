@@ -11,6 +11,8 @@ import { Screen, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from
 import { ActionBar, Note } from "@/components/agenda/primitives";
 import { DateField, FieldIcon, SelectField, TimeRangeField } from "@/components/agenda/fields";
 import { commonAreas } from "@/lib/agenda/data";
+import { proposeActivity } from "@/lib/agenda/actions";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 type Errors = Partial<Record<"name" | "date" | "time" | "capacity" | "place", string>>;
 
@@ -26,6 +28,8 @@ export default function CrearActividadPage() {
   const [area, setArea] = React.useState(commonAreas[0]);
   const [freePlace, setFreePlace] = React.useState("");
   const [errors, setErrors] = React.useState<Errors>({});
+  const [sendError, setSendError] = React.useState<string>();
+  const [sending, startSend] = React.useTransition();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,16 +43,33 @@ export default function CrearActividadPage() {
     setErrors(found);
     if (Object.keys(found).length) return;
 
-    // TODO: POST /api/actividades. La API decide si queda pendiente de aprobación.
+    const place = usesArea ? area : freePlace.trim();
     const q = new URLSearchParams({
       nombre: name.trim(),
       fecha: date,
       inicio: time.start,
       fin: time.end,
-      lugar: usesArea ? area : freePlace.trim(),
+      lugar: place,
       cupos: capacity,
     });
-    router.push(`/agenda/crear/${usesArea ? "enviada" : "publicada"}?${q}`);
+    const next = `/agenda/crear/${usesArea ? "enviada" : "publicada"}?${q}`;
+    if (!isSupabaseConfigured) return router.push(next);
+
+    setSendError(undefined);
+    startSend(async () => {
+      const result = await proposeActivity({
+        name: name.trim(),
+        description: description.trim(),
+        date,
+        start: time.start,
+        end: time.end,
+        place,
+        capacity: Number(capacity),
+        usesArea,
+      });
+      if (!result.ok) return setSendError(result.error);
+      router.push(next);
+    });
   }
 
   return (
@@ -135,9 +156,14 @@ export default function CrearActividadPage() {
           </section>
         </ScreenBody>
 
-        <ActionBar>
-          <Button type="submit" form="crear" className="rounded-[80px]">
-            {usesArea ? "Enviar solicitud a la administración" : "Publicar actividad"}
+        <ActionBar className="flex-col">
+          {sendError && (
+            <p role="alert" className="w-full text-caption text-error">
+              {sendError}
+            </p>
+          )}
+          <Button type="submit" form="crear" className="rounded-[80px]" disabled={sending}>
+            {sending ? "Enviando…" : usesArea ? "Enviar solicitud a la administración" : "Publicar actividad"}
           </Button>
         </ActionBar>
       </form>

@@ -8,6 +8,7 @@ import { PushNotification } from "@/components/app/push-notification";
 import { draftDate, draftQuery, type DraftActivity } from "@/lib/agenda/draft";
 import { cn } from "@/lib/utils";
 import { StatusCircle } from "./primitives";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 type Step = { label: string; state: "done" | "current" | "pending" };
 
@@ -49,9 +50,12 @@ export function RequestSent({ draft }: { draft: DraftActivity }) {
 
   return (
     <Screen>
-      <PushNotification href={`/agenda/crear/publicada?${draftQuery(draft, { aprobada: "1" })}`}>
-        La administración aprobó tu actividad. Toca para verla.
-      </PushNotification>
+      {/* Modo demo: aprobación simulada. Con Supabase la decide la administración. */}
+      {!isSupabaseConfigured && (
+        <PushNotification href={`/agenda/crear/publicada?${draftQuery(draft, { aprobada: "1" })}`}>
+          La administración aprobó tu actividad. Toca para verla.
+        </PushNotification>
+      )}
 
       <div className="flex flex-col items-start gap-4 px-5 pt-[180px]">
         <StatusCircle icon={Clock} tone="warning" />

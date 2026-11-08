@@ -1,6 +1,8 @@
 import { Droplets, Dumbbell, Flame, Globe, Sofa, Waves, type LucideIcon } from "lucide-react";
 import { AGENDA_TODAY } from "@/lib/agenda/data";
 import { parseDay, toDay } from "@/lib/agenda/format";
+import { colombiaToday } from "@/lib/agenda/today";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
  * Zonas comunes de Residencial Samán (mock).
@@ -188,6 +190,20 @@ export const getZone = (id: string) => zones.find((z) => z.id === id);
 export const ZONES_NOW = "17:30";
 export const ZONES_TODAY = AGENDA_TODAY;
 
+/** Hoy real (Colombia) con Supabase; el 14 de octubre del prototipo en modo demo. */
+export const zonesToday = () => (isSupabaseConfigured ? colombiaToday() : ZONES_TODAY);
+
+/** Hora real (Colombia) con Supabase; 5:30 p. m. en modo demo. */
+export function zonesNow() {
+  if (!isSupabaseConfigured) return ZONES_NOW;
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Bogota",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date());
+}
+
 export function addDays(day: string, n: number) {
   const d = parseDay(day);
   d.setDate(d.getDate() + n);
@@ -199,7 +215,7 @@ export function addDays(day: string, n: number) {
  * la siguiente semana (así lo muestra el diseño: miércoles 21 a martes 27),
  * siempre por encima de la anticipación mínima.
  */
-export function bookableDays(zone: ApprovalZone, today = ZONES_TODAY) {
+export function bookableDays(zone: ApprovalZone, today = zonesToday()) {
   const first = addDays(today, Math.max(zone.minDays, 7));
   return Array.from({ length: 7 }, (_, i) => addDays(first, i));
 }
@@ -227,7 +243,7 @@ const fromMin = (min: number) =>
   `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
 
 /** Turnos de hoy que aún no han empezado (Z7). */
-export function remainingTurns(zone: TurnZone, now = ZONES_NOW): Slot[] {
+export function remainingTurns(zone: TurnZone, now = zonesNow()): Slot[] {
   const out: Slot[] = [];
   for (let t = toMin(zone.open); t + zone.minutes <= toMin(zone.close); t += zone.minutes) {
     if (t >= toMin(now)) out.push({ start: fromMin(t), end: fromMin(t + zone.minutes) });

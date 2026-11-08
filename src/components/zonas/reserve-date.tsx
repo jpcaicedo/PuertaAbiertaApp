@@ -10,6 +10,7 @@ import { formatLongDate } from "@/lib/agenda/format";
 import { bookableDays, getZone, isTaken, type ApprovalZone } from "@/lib/zones/data";
 import { reservationQuery } from "@/lib/zones/reservation";
 import { findBooking, useZonesState } from "@/lib/zones/store";
+import type { ZoneOccupancy } from "@/lib/zones/queries";
 import { DayStrip, SlotList, SlotOption } from "./ui";
 
 /** Z3 · Elegir fecha y franja (484:4373). Día y franja viven en la URL para volver desde Z4 sin perderlos. */
@@ -17,10 +18,13 @@ export function ReserveDate({
   zoneId,
   day: initialDay,
   start: initialStart,
+  occupancy,
 }: {
   zoneId: string;
   day?: string;
   start?: string;
+  /** Con Supabase: franjas tomadas y propias. Sin él, datos de ejemplo. */
+  occupancy?: ZoneOccupancy | null;
 }) {
   const zone = getZone(zoneId) as ApprovalZone;
   const router = useRouter();
@@ -29,8 +33,13 @@ export function ReserveDate({
   const [day, setDay] = React.useState(initialDay && days.includes(initialDay) ? initialDay : days[0]);
   const [start, setStart] = React.useState<string | null>(initialStart ?? null);
 
-  const stateOf = (s: string) =>
-    findBooking(state, zone.id, day, s) ? "mine" : isTaken(zone.id, day, s) ? "taken" : "available";
+  const stateOf = (s: string) => {
+    if (occupancy) {
+      const key = `${day}|${s}`;
+      return occupancy.mine.includes(key) ? "mine" : occupancy.taken.includes(key) ? "taken" : "available";
+    }
+    return findBooking(state, zone.id, day, s) ? "mine" : isTaken(zone.id, day, s) ? "taken" : "available";
+  };
   const slot = zone.slots.find((s) => s.start === start && stateOf(s.start) === "available");
 
   function sync(nextDay: string, nextStart: string | null) {

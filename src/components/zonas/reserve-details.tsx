@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { getZone, type ApprovalZone } from "@/lib/zones/data";
 import { reservationQuery, slotSummary, type ReservationType } from "@/lib/zones/reservation";
 import { zonesActions } from "@/lib/zones/store";
+import { reserveZone } from "@/lib/zones/actions";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 const types: {
   id: ReservationType;
@@ -76,6 +78,8 @@ export function ReserveDetails({ zoneId, day, start }: { zoneId: string; day: st
   const [reason, setReason] = React.useState("");
   const [guests, setGuests] = React.useState("");
   const [errors, setErrors] = React.useState<Errors>({});
+  const [sendError, setSendError] = React.useState<string>();
+  const [sending, startSend] = React.useTransition();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -87,18 +91,26 @@ export function ReserveDetails({ zoneId, day, start }: { zoneId: string; day: st
     setErrors(found);
     if (Object.keys(found).length) return;
 
-    // TODO: POST /api/zonas/:id/reservas — queda pendiente de aprobación.
-    zonesActions.save({
-      zoneId: zone.id,
-      day,
-      start: slot.start,
-      end: slot.end,
-      status: "pending",
-      guests: n,
+    const next = `/zonas-comunes/${zone.id}/reservar/enviada?${reservationQuery({ day, slot, type, reason: reason.trim(), guests: n })}`;
+    if (!isSupabaseConfigured) {
+      // Modo demo: queda en el navegador.
+      zonesActions.save({ zoneId: zone.id, day, start: slot.start, end: slot.end, status: "pending", guests: n });
+      return router.push(next);
+    }
+    setSendError(undefined);
+    startSend(async () => {
+      const result = await reserveZone({
+        zoneId: zone.id,
+        day,
+        start: slot.start,
+        end: slot.end,
+        type,
+        reason: reason.trim(),
+        guests: n,
+      });
+      if (!result.ok) return setSendError(result.error);
+      router.push(next);
     });
-    router.push(
-      `/zonas-comunes/${zone.id}/reservar/enviada?${reservationQuery({ day, slot, type, reason: reason.trim(), guests: n })}`,
-    );
   }
 
   return (
@@ -143,9 +155,14 @@ export function ReserveDetails({ zoneId, day, start }: { zoneId: string; day: st
         </ScreenBody>
       </form>
 
-      <ActionBar>
-        <Button type="submit" form="reserva" className="flex-1">
-          Enviar solicitud a la administración
+      <ActionBar className="flex-col">
+        {sendError && (
+          <p role="alert" className="w-full text-caption text-error">
+            {sendError}
+          </p>
+        )}
+        <Button type="submit" form="reserva" className="w-full" disabled={sending}>
+          {sending ? "Enviando…" : "Enviar solicitud a la administración"}
         </Button>
       </ActionBar>
     </Screen>
