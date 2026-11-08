@@ -4,31 +4,17 @@ import * as React from "react";
 import Link from "next/link";
 import { MessageCircle, Pencil, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatRating, reviewsLabel, withRealRatings, type Review } from "@/lib/directory/data";
+import { reviewsLabel, withRealRatings, type Review } from "@/lib/directory/data";
 import { useDemoReview } from "@/lib/directory/reviews-store";
 import type { ReviewAccess } from "@/lib/directory/queries";
 import { useCurrentUser } from "@/components/app/current-user";
 import { cn } from "@/lib/utils";
-import { Avatar, Rating } from "./ui";
+import { Avatar, Rating, StarRow } from "./ui";
 
 /* ───────────────────────── Estrellas ───────────────────────── */
 
-/** Fila de 5 estrellas de solo lectura. */
-export function Stars({ value, size = 14 }: { value: number; size?: number }) {
-  return (
-    <span className="inline-flex items-center gap-0.5" role="img" aria-label={`${value} de 5 estrellas`}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          aria-hidden
-          strokeWidth={1.5}
-          style={{ width: size, height: size }}
-          className={i <= value ? "fill-star text-star" : "fill-transparent text-border"}
-        />
-      ))}
-    </span>
-  );
-}
+/** Estrellas de una reseña (solo lectura). */
+export const Stars = ({ value, size = 14 }: { value: number; size?: number }) => <StarRow value={value} size={size} />;
 
 const starWords = ["", "Malo", "Regular", "Bueno", "Muy bueno", "Excelente"];
 
@@ -92,7 +78,7 @@ export function ServiceRating({
   const demo = useDemoReview(slug);
   const s = !remote && demo ? withRealRatings({ rating, reviewCount: count }, [demo.stars]) : { rating, reviewCount: count };
   if (!s.rating) return null;
-  return <Rating value={formatRating(s.rating)} label={reviewsLabel(s.reviewCount, true)} />;
+  return <Rating rating={s.rating} label={reviewsLabel(s.reviewCount, true)} />;
 }
 
 /* ───────────────────────── Sección de reseñas ───────────────────────── */

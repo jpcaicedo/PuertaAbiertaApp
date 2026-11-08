@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Check, ChevronLeft, Search, ShieldCheck, Star, X } from "lucide-react";
-import { initials } from "@/lib/directory/data";
+import { formatRating, initials } from "@/lib/directory/data";
 import { cn } from "@/lib/utils";
 
 /* ───────────────────────── Avatar ───────────────────────── */
@@ -35,12 +35,38 @@ export function VerifiedMark() {
   );
 }
 
-export function Rating({ value, label }: { value: string; label: string }) {
+/**
+ * Siempre 5 estrellas, llenas según el puntaje redondeado a la media estrella más cercana:
+ * 5 → cinco llenas · 4 → cuatro llenas y una vacía · 3,5 → tres llenas, una a la mitad y una vacía.
+ */
+export function StarRow({ value, size = 16 }: { value: number; size?: number }) {
+  const rounded = Math.round(value * 2) / 2;
   return (
-    <p className="flex items-center gap-1.5 text-caption text-text-secondary">
-      <Star className="size-4 shrink-0 fill-star text-star" strokeWidth={1.5} aria-hidden />
+    <span role="img" aria-label={`${formatRating(value)} de 5 estrellas`} className="inline-flex shrink-0 items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => {
+        const fill = Math.max(0, Math.min(1, rounded - (i - 1)));
+        return (
+          <span key={i} aria-hidden className="relative inline-block shrink-0" style={{ width: size, height: size }}>
+            <Star strokeWidth={1.5} className="absolute inset-0 fill-text-tertiary/25 text-transparent" style={{ width: size, height: size }} />
+            {fill > 0 && (
+              <span className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
+                <Star strokeWidth={1.5} className="fill-star text-star" style={{ width: size, height: size }} />
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
+/** "★★★★★ 5,0 · 28 reseñas de vecinos" */
+export function Rating({ rating, label }: { rating: number; label: string }) {
+  return (
+    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-text-secondary">
+      <StarRow value={rating} />
       <span>
-        {value} · {label}
+        {formatRating(rating)} · {label}
       </span>
     </p>
   );
