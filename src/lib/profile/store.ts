@@ -20,7 +20,8 @@ const KEY = "pa.perfil";
 const initial = (): State => ({
   // Por defecto solo se ve el nombre y la torre (P3).
   privacy: { showApartment: false, showPhone: false, inDirectory: true, acceptMessages: true },
-  notify: { requests: true, agenda: true, messages: true, marketplace: false },
+  // Por defecto todo prendido; cada vecino decide si apaga algo.
+  notify: { all: true, requests: true, agenda: true, messages: true, marketplace: true },
   read: [],
 });
 

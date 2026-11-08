@@ -16,7 +16,7 @@ type ProfileRow = {
   en_directorio: boolean;
   recibe_mensajes: boolean;
   notificaciones: Partial<
-    Record<"requests" | "agenda" | "messages" | "marketplace", boolean>
+    Record<"all" | "requests" | "agenda" | "messages" | "marketplace", boolean>
   > | null;
   apartamentos: { numero: string; torres: { nombre: string } | null } | null;
 };
@@ -74,7 +74,8 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
         requests: data.notificaciones?.requests ?? true,
         agenda: data.notificaciones?.agenda ?? true,
         messages: data.notificaciones?.messages ?? true,
-        marketplace: data.notificaciones?.marketplace ?? false,
+        marketplace: data.notificaciones?.marketplace ?? true,
+        all: data.notificaciones?.all ?? true,
       },
     },
   };

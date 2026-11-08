@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Lock } from "lucide-react";
+import { BellOff, Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Screen, ScreenHeader } from "@/components/app/screen";
 import { useCurrentUser, UserAvatar } from "@/components/app/current-user";
@@ -78,6 +78,7 @@ export function PrivacyScreen() {
 /** P4 · Notificaciones (484:5547) */
 export function NotificationSettingsScreen() {
   const { notify } = useProfileState();
+  const on = notify.all !== false;
 
   return (
     <Screen>
@@ -85,8 +86,22 @@ export function NotificationSettingsScreen() {
       <div className="flex flex-col items-start gap-4 px-5 pt-3 pb-8">
         <PageHeading
           title="Notificaciones"
-          description="Elige qué te avisamos. Los avisos de la administración siempre llegan."
+          description="Elige qué te avisamos. Los avisos de la administración llegan mientras tengas las notificaciones activadas."
         />
+        <ListGroup label="Todas las notificaciones">
+          <SettingRow
+            id="todas"
+            title="Activar notificaciones"
+            description={on ? "Te avisamos en la campana y con el aviso de arriba." : "Apagadas: no te avisamos nada."}
+            control={<Toggle id="todas" checked={on} onChange={(v) => profileActions.setNotify("all", v)} />}
+          />
+        </ListGroup>
+        {!on && (
+          <p className="flex w-full items-start gap-2 rounded-card bg-note p-3 text-caption text-text-secondary">
+            <BellOff className="mt-0.5 size-4 shrink-0" strokeWidth={2} aria-hidden />
+            Mientras estén apagadas no te llega nada, ni los avisos de la administración. Igual los puedes ver en Inicio.
+          </p>
+        )}
         <ListGroup label="Notificaciones">
           <SettingRow
             id="avisos"
@@ -95,7 +110,7 @@ export function NotificationSettingsScreen() {
             control={
               <span className="inline-flex shrink-0 items-center gap-1 rounded-[10px] bg-surface-muted px-2 py-[3px] text-overline font-semibold text-text-tertiary">
                 <Lock className="size-3" strokeWidth={2} aria-hidden />
-                Siempre
+                {on ? "Siempre" : "Apagado"}
               </span>
             }
           />
@@ -106,7 +121,14 @@ export function NotificationSettingsScreen() {
               title={o.title}
               description={o.description}
               control={
-                <Toggle id={o.key} checked={notify[o.key]} onChange={(v) => profileActions.setNotify(o.key, v)} />
+                <Switch
+                  size="lg"
+                  checked={on && notify[o.key] !== false}
+                  disabled={!on}
+                  onCheckedChange={(v) => profileActions.setNotify(o.key, v)}
+                  aria-labelledby={`${o.key}-label`}
+                  aria-describedby={`${o.key}-desc`}
+                />
               }
             />
           ))}

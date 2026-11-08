@@ -134,7 +134,8 @@ export const notifications: AppNotification[] = [
 /* ───────────────────────── P3 / P4 · Preferencias ───────────────────────── */
 
 export type PrivacyKey = "showApartment" | "showPhone" | "inDirectory" | "acceptMessages";
-export type NotifyKey = "requests" | "agenda" | "messages" | "marketplace";
+/** `all` es el interruptor general: apagado, no llega ninguna notificación. */
+export type NotifyKey = "all" | "requests" | "agenda" | "messages" | "marketplace";
 
 export const privacyOptions: { key: PrivacyKey; title: string; description: string }[] = [
   { key: "showApartment", title: "Mostrar mi apartamento", description: "Tus vecinos verían «apto 204»." },
@@ -151,7 +152,7 @@ export const privacyOptions: { key: PrivacyKey; title: string; description: stri
   { key: "acceptMessages", title: "Recibir mensajes de vecinos", description: "Siempre puedes bloquear a alguien." },
 ];
 
-export const notifyOptions: { key: NotifyKey; title: string; description: string }[] = [
+export const notifyOptions: { key: Exclude<NotifyKey, "all">; title: string; description: string }[] = [
   {
     key: "requests",
     title: "Respuestas a tus solicitudes",

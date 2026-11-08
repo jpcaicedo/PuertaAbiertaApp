@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Book, Building2, Calendar, Camera, Eye, LogOut, MessageCircle, Tag } from "lucide-react";
+import { Book, Building2, Calendar, Camera, Eye, LogOut, MessageCircle, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BottomSheet,
@@ -22,6 +22,7 @@ import { useProfileState } from "@/lib/profile/store";
 import { uploadAvatar } from "@/lib/profile/avatar";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { ThemeRow } from "./theme-row";
+import { NotificationsRow } from "./notifications-row";
 import { ListGroup, NavRow, SectionLabel } from "./ui";
 
 /** Lo que ven los vecinos según P3: "Sandra, Torre E" (+ ", apto 204"). */
@@ -114,13 +115,7 @@ export function ProfileScreen({ unreadMessages = 0 }: { unreadMessages?: number 
             title="Privacidad"
             subtitle="Qué ven tus vecinos de ti"
           />
-          <NavRow
-            href="/perfil/notificaciones"
-            icon={Bell}
-            tone="neutral"
-            title="Notificaciones"
-            subtitle="Elige qué te avisamos"
-          />
+          <NotificationsRow />
           <ThemeRow />
           <NavRow
             onClick={() => setRulesOpen(true)}
