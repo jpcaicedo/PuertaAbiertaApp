@@ -8,6 +8,8 @@ import { ListGroup, PageHeading, SectionLabel } from "@/components/perfil/ui";
 import { community } from "@/lib/mock-data";
 import { activeNotices, adminRequests, reports, type AdminNotice, type AdminRequest, type Report } from "@/lib/admin/data";
 import { useAdminState } from "@/lib/admin/store";
+import { useCurrentUser } from "@/components/app/current-user";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
 import { Tag } from "./ui";
 
@@ -56,6 +58,8 @@ export function AdminHome({
   openReports?: Report[];
 }) {
   const state = useAdminState();
+  const user = useCurrentUser();
+  const unread = user.unreadNotifications ?? 0;
   const pending = requests ?? adminRequests.filter((r) => !state.decisions[r.id]);
   const oldest = Math.max(0, ...pending.map((r) => r.waitingHours));
   const openReports = serverReports ?? reports.filter((r) => !state.reports[r.id]);
@@ -74,11 +78,18 @@ export function AdminHome({
           <span className="text-caption text-text-tertiary">{community.name}</span>
         </span>
         <Link
-          href="/admin/solicitudes"
-          aria-label={`Solicitudes pendientes: ${pending.length}`}
+          href={isSupabaseConfigured ? "/notificaciones" : "/admin/solicitudes"}
+          aria-label={
+            isSupabaseConfigured
+              ? unread
+                ? `Notificaciones, ${unread} sin leer`
+                : "Notificaciones"
+              : `Solicitudes pendientes: ${pending.length}`
+          }
           className="relative -m-2 grid size-10 place-items-center rounded-full text-ink transition-colors hover:bg-brand-soft/60 outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
           <Bell className="size-6" strokeWidth={2} aria-hidden />
+          {unread > 0 && <span className="absolute top-2 right-2.5 size-2 rounded-full bg-error ring-2 ring-bg" />}
         </Link>
       </header>
 
