@@ -9,6 +9,7 @@ import { HomeHeader } from "@/components/app/home-header";
 import { Screen } from "@/components/app/screen";
 import { type AgendaItem, type Category, type CommunityActivity, type TimeOfDay } from "@/lib/agenda/data";
 import { parseDay, spotsLeft, timeOfDay, weekdayLong, weekdayShort, weekOf } from "@/lib/agenda/format";
+import { activityStatus } from "@/lib/agenda/today";
 import { cn } from "@/lib/utils";
 import { ActivityListCard, NeighborhoodEventCard } from "./cards";
 import { FilterSheet, ProposeSheet, WaitlistSheets, type AgendaFilters } from "./sheets";
@@ -25,7 +26,7 @@ function applyFilters(items: AgendaItem[], f: AgendaFilters) {
   return items.filter((i) => {
     if (f.categories.length && !i.categories.some((c) => f.categories.includes(c))) return false;
     if (f.times.length && !f.times.includes(timeOfDay(i.start))) return false;
-    if (f.onlyWithSpots && i.kind === "actividad" && spotsLeft(i) === 0) return false;
+    if (f.onlyWithSpots && i.kind === "actividad" && (spotsLeft(i) === 0 || activityStatus(i) !== "upcoming")) return false;
     return true;
   });
 }
@@ -47,7 +48,11 @@ export function AgendaScreen({ day, filters, items }: Props) {
   const [waitlistFor, setWaitlistFor] = React.useState<CommunityActivity | null>(null);
 
   const week = weekOf(day);
-  const dayItems = items.filter((i) => i.date === day).sort((a, b) => a.start.localeCompare(b.start));
+  // Las que ya terminaron van al final del día; el resto, por hora de inicio.
+  const ended = (i: AgendaItem) => (activityStatus(i) === "ended" ? 1 : 0);
+  const dayItems = items
+    .filter((i) => i.date === day)
+    .sort((a, b) => ended(a) - ended(b) || a.start.localeCompare(b.start));
   const visible = applyFilters(dayItems, filters);
   const hasAdvancedFilters = filters.times.length > 0 || filters.onlyWithSpots || filters.categories.length > 1;
   const href = (d: string, f: AgendaFilters = filters) => `${pathname}${toQuery(d, f)}`;

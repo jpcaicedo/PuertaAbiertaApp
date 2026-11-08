@@ -211,6 +211,9 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 9. `supabase/seed_0005.sql` — los cuatro productos de ejemplo y un reporte para la administración.
 10. `supabase/migrations/0006_mensajes.sql` — mensajes a vecinos de ejemplo y eliminar mensajes.
 11. `supabase/migrations/0007_notificaciones.sql` — notificaciones dentro de la app (se crean solas con disparadores).
+12. `supabase/migrations/0008_actividades_pasadas.sql` — no deja inscribirse a actividades que ya empezaron.
+
+Las actividades que ya empezaron dicen "En curso" y las que terminaron "Ya terminó", quedan al final del día y no permiten inscribirse ni marcar "Voy".
 
 Para copiar un archivo, ábrelo en VS Code o en el Bloc de notas y usa Ctrl+A y Ctrl+C. Desde Git Bash, `clip` daña las tildes.
 

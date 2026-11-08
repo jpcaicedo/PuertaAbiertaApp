@@ -7,7 +7,7 @@ import { getZone, ofZone } from "@/lib/zones/data";
 import type { AgendaState } from "./store";
 import type { Activity } from "@/lib/mock-data";
 import { nextActivity as demoNextActivity } from "@/lib/mock-data";
-import { colombiaToday } from "./today";
+import { activityStatus, colombiaToday } from "./today";
 
 /**
  * Lecturas de la agenda en Supabase. En modo demo devuelven los datos de ejemplo.
@@ -333,7 +333,7 @@ export async function getMyAgenda(): Promise<MyAgendaEntry[] | null> {
     const enrolled = mine.enrolled.includes(i.id) || mine.going.includes(i.id);
     const waiting = mine.waitlist[i.id];
     if (!enrolled && !waiting) return [];
-    const past = i.date < today;
+    const past = activityStatus(i) === "ended";
     return [
       {
         id: `agenda-${i.id}`,
