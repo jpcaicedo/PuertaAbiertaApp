@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getSessionUser } from "@/lib/supabase/server";
 import {
   getProduct as demoProduct,
   getService as demoService,
@@ -196,9 +196,7 @@ export const getProductBySlug = cache(async (slug: string): Promise<(Product & {
 export async function getMyListings(): Promise<MyListing[] | null> {
   if (!isSupabaseConfigured) return null;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return [];
   const [{ data }, { data: interested }] = await Promise.all([
     supabase

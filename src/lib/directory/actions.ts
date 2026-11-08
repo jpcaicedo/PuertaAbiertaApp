@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getSessionUser } from "@/lib/supabase/server";
 import type { ServiceDraft } from "./store";
 
 /** D6 · Publicar servicio. */
@@ -32,9 +32,7 @@ export async function publishService(
 /** Quitar un servicio propio del Directorio. Deja de verse para todos y se pueden seguir leyendo los mensajes. */
 export async function deleteService(slug: string): Promise<{ ok: boolean }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false };
   const { data, error } = await supabase
     .from("servicios")

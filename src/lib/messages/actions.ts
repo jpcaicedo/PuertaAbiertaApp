@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getSessionUser } from "@/lib/supabase/server";
 import { demoKeyToTarget } from "./queries";
 
 /**
@@ -36,9 +36,7 @@ export async function sendMessage(
 /** Marca como leídos los mensajes que llegaron mientras la conversación estaba abierta. */
 export async function markConversationRead(peerId: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return;
   await supabase.from("mensajes").update({ leido_en: new Date().toISOString() }).eq("de", peerId).eq("para", user.id).is("leido_en", null);
 }
@@ -49,9 +47,7 @@ export async function markConversationRead(peerId: string) {
  */
 export async function deleteMessage(id: string): Promise<{ ok: boolean }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false };
   const { data: mine } = await supabase.from("mensajes").delete().eq("id", id).eq("de", user.id).select("id");
   if (!mine?.length) {
@@ -65,9 +61,7 @@ export async function deleteMessage(id: string): Promise<{ ok: boolean }> {
 /** Vaciar una conversación: borra lo que envié y oculta lo que recibí. */
 export async function deleteConversation(peerKey: string): Promise<{ ok: boolean }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false };
   const demo = demoKeyToTarget(peerKey);
   if (demo) {

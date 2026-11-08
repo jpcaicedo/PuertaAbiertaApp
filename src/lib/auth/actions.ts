@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { demoUser, formatUnit, lookupResidenceCode } from "@/lib/mock-data";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getSessionUser } from "@/lib/supabase/server";
 
 /* ───────────────────────── R2 · Código de residencia ───────────────────────── */
 
@@ -75,9 +75,7 @@ export type ProfileSetup = { bio: string; showApartment: boolean; showPhone: boo
 export async function saveProfileSetup(input: ProfileSetup): Promise<ActionResult> {
   if (!isSupabaseConfigured) return { ok: true };
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false, error: "Tu sesión se cerró. Vuelve a iniciar sesión." };
 
   const { error } = await supabase

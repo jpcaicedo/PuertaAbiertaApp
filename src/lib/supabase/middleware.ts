@@ -30,10 +30,11 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // Importante: no poner código entre createServerClient y getUser.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Importante: no poner código entre createServerClient y getClaims.
+  // getClaims refresca la sesión si venció y verifica el token sin un viaje extra al servidor de Supabase.
+  const { data: auth } = await supabase.auth.getClaims();
+  const sub = auth?.claims?.sub;
+  const user = typeof sub === "string" ? { id: sub } : null;
 
   const path = request.nextUrl.pathname;
   const redirectTo = (to: string) => {
