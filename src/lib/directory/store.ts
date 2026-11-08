@@ -32,6 +32,8 @@ export type ServiceDraft = {
   availability: string;
   showApartment: boolean;
   acceptCalls: boolean;
+  /** Celular, solo si acepta llamadas. */
+  phone?: string;
 };
 
 type State = { listings: MyListing[]; serviceDraft: ServiceDraft | null };

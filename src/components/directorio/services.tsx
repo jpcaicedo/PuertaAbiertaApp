@@ -52,9 +52,9 @@ const serviceFilters: { id: "todos" | ServiceCategory; label: string }[] = [
   { id: "hogar", label: "Hogar" },
 ];
 
-export function ServicesScreen() {
+export function ServicesScreen({ services: all = services }: { services?: NeighborService[] }) {
   const [filter, setFilter] = React.useState<"todos" | ServiceCategory>("todos");
-  const list = services.filter((s) => filter === "todos" || s.category === filter);
+  const list = all.filter((s) => filter === "todos" || s.category === filter);
 
   return (
     <DirectoryHeader active="servicios" action={{ label: "Ofrecer servicio", href: "/directorio/ofrecer" }}>
@@ -89,7 +89,7 @@ function ServiceCard({ service: s }: { service: NeighborService }) {
             {s.neighbor.verified && <VerifiedMark />}
           </p>
           <p className="text-caption text-text-secondary">
-            Apto {s.neighbor.apartment} · Torre {s.neighbor.tower}
+            {s.neighbor.apartment ? `Apto ${s.neighbor.apartment} · ` : ""}Torre {s.neighbor.tower}
           </p>
         </div>
       </div>
@@ -120,10 +120,16 @@ function ServiceCard({ service: s }: { service: NeighborService }) {
 
 /* ───────────────────────── D2 · Buscar vecinos / D2b · Sin resultados ───────────────────────── */
 
-export function ServiceSearchScreen({ initialQuery }: { initialQuery: string }) {
+export function ServiceSearchScreen({
+  initialQuery,
+  services: all = services,
+}: {
+  initialQuery: string;
+  services?: NeighborService[];
+}) {
   const [query, setQuery] = React.useState(initialQuery);
   const term = query.trim();
-  const results = searchServices(query);
+  const results = searchServices(query, all);
 
   return (
     <Screen className="pb-tabbar">

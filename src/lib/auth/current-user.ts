@@ -11,6 +11,11 @@ type ProfileRow = {
   rol: Role;
   avatar_url: string | null;
   bio: string | null;
+  mostrar_apartamento: boolean;
+  mostrar_telefono: boolean;
+  en_directorio: boolean;
+  recibe_mensajes: boolean;
+  notificaciones: Partial<Record<"requests" | "agenda" | "messages" | "marketplace", boolean>> | null;
   apartamentos: { numero: string; torres: { nombre: string } | null } | null;
 };
 
@@ -29,7 +34,9 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const { data } = await supabase
     .from("perfiles")
-    .select("id, nombre, rol, avatar_url, bio, apartamentos ( numero, torres ( nombre ) )")
+    .select(
+      "id, nombre, rol, avatar_url, bio, mostrar_apartamento, mostrar_telefono, en_directorio, recibe_mensajes, notificaciones, apartamentos ( numero, torres ( nombre ) )",
+    )
     .eq("id", user.id)
     .maybeSingle<ProfileRow>();
   if (!data) return null;
@@ -46,5 +53,19 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     avatar: data.avatar_url,
     bio: data.bio,
     role: data.rol,
+    prefs: {
+      privacy: {
+        showApartment: data.mostrar_apartamento,
+        showPhone: data.mostrar_telefono,
+        inDirectory: data.en_directorio,
+        acceptMessages: data.recibe_mensajes,
+      },
+      notify: {
+        requests: data.notificaciones?.requests ?? true,
+        agenda: data.notificaciones?.agenda ?? true,
+        messages: data.notificaciones?.messages ?? true,
+        marketplace: data.notificaciones?.marketplace ?? false,
+      },
+    },
   };
 });

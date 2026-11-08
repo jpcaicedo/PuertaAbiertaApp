@@ -1,4 +1,8 @@
 import { currentResident } from "@/lib/mock-data";
+import type { NotifyKey, PrivacyKey } from "@/lib/profile/data";
+
+export type PrivacyPrefs = Record<PrivacyKey, boolean>;
+export type NotifyPrefs = Record<NotifyKey, boolean>;
 
 export type Role = "vecino" | "administracion";
 
@@ -14,6 +18,8 @@ export type CurrentUser = {
   avatar: string | null;
   bio: string | null;
   role: Role;
+  /** Preferencias guardadas en Supabase (P3/P4). En modo demo no vienen y se usan las del navegador. */
+  prefs?: { privacy: PrivacyPrefs; notify: NotifyPrefs };
 };
 
 /** Sandra, la vecina de ejemplo (modo demo sin Supabase). */

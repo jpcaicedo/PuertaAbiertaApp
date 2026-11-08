@@ -5,24 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Screen, ScreenHeader } from "@/components/app/screen";
 import { ActionBar, InfoList, InfoRow } from "@/components/agenda/primitives";
 import { Avatar, Rating } from "@/components/directorio/ui";
-import { formatRating, getService, services } from "@/lib/directory/data";
+import { formatRating } from "@/lib/directory/data";
+import { getServiceBySlug } from "@/lib/directory/queries";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 type Props = { params: Promise<{ id: string }> };
 
-export function generateStaticParams() {
-  return services.map((s) => ({ id: s.id }));
-}
-
 export async function generateMetadata({ params }: Props) {
-  const s = getService((await params).id);
+  const s = await getServiceBySlug((await params).id);
   return { title: s ? `${s.neighbor.name} · Directorio` : "Directorio" };
 }
 
 /** D3 · Perfil del vecino (484:3699) */
 export default async function PerfilVecinoPage({ params }: Props) {
-  const s = getService((await params).id);
+  const [s, me] = await Promise.all([getServiceBySlug((await params).id), getCurrentUser()]);
   if (!s) notFound();
   const n = s.neighbor;
+  const isMine = !!s.ownerId && s.ownerId === me?.id;
 
   return (
     <Screen>
@@ -33,7 +32,8 @@ export default async function PerfilVecinoPage({ params }: Props) {
         {n.verified && (
           <span className="inline-flex items-center gap-[5px] rounded-[20px] bg-brand-soft py-1 pr-2.5 pl-2 text-overline font-medium text-brand">
             <ShieldCheck className="size-3.5" strokeWidth={2} aria-hidden />
-            {n.feminine ? "Vecina verificada" : "Vecino verificado"} · Apto {n.apartment}, Torre {n.tower}
+            {n.feminine ? "Vecina verificada" : "Vecino verificado"} · {n.apartment ? `Apto ${n.apartment}, ` : ""}Torre{" "}
+            {n.tower}
           </span>
         )}
       </div>
@@ -58,6 +58,9 @@ export default async function PerfilVecinoPage({ params }: Props) {
           <h2 id="resenas" className="text-body font-semibold text-text">
             Reseñas de vecinos
           </h2>
+          {s.reviews.length === 0 && (
+            <p className="text-caption text-text-secondary">Todavía no tiene reseñas. Sé la primera persona en contratarlo.</p>
+          )}
           <ul className="flex flex-col gap-2.5">
             {s.reviews.map((r) => (
               <li key={r.name} className="flex items-start gap-2.5 rounded-card bg-surface p-3">
@@ -75,10 +78,16 @@ export default async function PerfilVecinoPage({ params }: Props) {
       </div>
 
       <ActionBar>
-        <Button asChild className="flex-1 rounded-[80px]">
-          <Link href={`/directorio/${s.id}/mensaje`}>Enviar mensaje</Link>
-        </Button>
-        {s.callHours && s.phone && (
+        {isMine ? (
+          <Button asChild variant="secondary" className="flex-1 rounded-[80px]">
+            <Link href="/mensajes">Este es tu servicio · Ver mensajes</Link>
+          </Button>
+        ) : (
+          <Button asChild className="flex-1 rounded-[80px]">
+            <Link href={`/directorio/${s.id}/mensaje`}>Enviar mensaje</Link>
+          </Button>
+        )}
+        {!isMine && s.callHours && s.phone && (
           <a
             href={`tel:${s.phone}`}
             aria-label={`Llamar a ${n.firstName}`}

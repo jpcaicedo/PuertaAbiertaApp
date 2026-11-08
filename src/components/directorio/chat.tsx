@@ -4,6 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { ChevronLeft, Phone, SendHorizontal, ShieldCheck } from "lucide-react";
 import type { ChatMessage } from "@/lib/directory/data";
+import { markConversationRead, sendMessage } from "@/lib/messages/actions";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./ui";
 
@@ -14,6 +16,11 @@ type ChatScreenProps = {
   subtitle: string;
   phone?: string;
   initialMessages: ChatMessage[];
+  /**
+   * Conversación real en Supabase: quién soy y con quién hablo. Sin esto, el chat es de ejemplo
+   * (los mensajes solo se ven en pantalla).
+   */
+  remote?: { me: string; peerId: string; acceptsMessages: boolean };
 };
 
 function nowLabel() {
@@ -28,10 +35,36 @@ function nowLabel() {
  * y caja para escribir con botón de enviar de 44.
  * TODO: conectar con la mensajería real (WebSocket o polling).
  */
-export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMessages }: ChatScreenProps) {
+export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMessages, remote }: ChatScreenProps) {
   const [messages, setMessages] = React.useState(initialMessages);
   const [draft, setDraft] = React.useState("");
+  const [error, setError] = React.useState<string>();
   const endRef = React.useRef<HTMLDivElement>(null);
+  const blocked = remote ? !remote.acceptsMessages : false;
+
+  // Mensajes nuevos en vivo: Supabase avisa cuando el otro vecino escribe.
+  const me = remote?.me;
+  const peerId = remote?.peerId;
+  React.useEffect(() => {
+    if (!me || !peerId) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`chat-${me}-${peerId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "mensajes", filter: `para=eq.${me}` },
+        (payload) => {
+          const m = payload.new as { id: string; de: string; texto: string };
+          if (m.de !== peerId) return;
+          setMessages((list) => (list.some((x) => x.id === m.id) ? list : [...list, { id: m.id, mine: false, text: m.texto, time: nowLabel() }]));
+          void markConversationRead(peerId);
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [me, peerId]);
 
   React.useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -41,8 +74,21 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
     e.preventDefault();
     const text = draft.trim();
     if (!text) return;
-    setMessages((m) => [...m, { id: String(Date.now()), mine: true, text, time: nowLabel() }]);
+    const tempId = `tmp-${Date.now()}`;
+    setMessages((m) => [...m, { id: tempId, mine: true, text, time: nowLabel() }]);
     setDraft("");
+    setError(undefined);
+    if (!remote) return;
+    void sendMessage(remote.peerId, text).then((r) => {
+      if (r.ok) {
+        setMessages((m) => m.map((x) => (x.id === tempId ? { ...x, id: r.id } : x)));
+      } else {
+        // No se envió: se quita la burbuja y se devuelve el texto a la caja.
+        setMessages((m) => m.filter((x) => x.id !== tempId));
+        setDraft(text);
+        setError(r.error);
+      }
+    });
   }
 
   return (
@@ -95,6 +141,11 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
         <div ref={endRef} />
       </div>
 
+      {(error || blocked) && (
+        <p role="alert" className="shrink-0 px-5 pt-2 text-caption text-error">
+          {error ?? `${name.split(/\s+/)[0]} no recibe mensajes por la app en este momento.`}
+        </p>
+      )}
       <form onSubmit={send} className="flex shrink-0 items-center gap-2.5 px-4 pt-2 pb-[max(30px,calc(var(--safe-bottom)+12px))]">
         <label htmlFor="mensaje" className="sr-only">
           Escribe un mensaje
@@ -104,13 +155,15 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Escribe un mensaje"
+          disabled={blocked}
+          maxLength={1000}
           autoComplete="off"
           enterKeyHint="send"
           className="h-[46px] min-w-0 flex-1 rounded-full bg-note px-4 text-body text-text outline-none placeholder:text-text-tertiary focus-visible:ring-2 focus-visible:ring-brand"
         />
         <button
           type="submit"
-          disabled={!draft.trim()}
+          disabled={!draft.trim() || blocked}
           aria-label="Enviar"
           className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full bg-brand text-white transition-[transform,opacity] active:scale-95 disabled:opacity-60 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
         >

@@ -1,7 +1,9 @@
 "use client";
 
+import * as React from "react";
 import { useSyncExternalStore } from "react";
 import { notifications, type NotifyKey, type PrivacyKey } from "./data";
+import { saveNotify, savePrivacy } from "./actions";
 
 /**
  * Preferencias de privacidad y notificaciones, y notificaciones leídas (mock en sessionStorage).
@@ -24,6 +26,26 @@ const initial = (): State => ({
 
 let state: State = initial();
 let loaded = false;
+/** true cuando las preferencias vienen de Supabase: se guardan allá y no en el navegador. */
+let remote = false;
+let hydratedFrom: Prefs | null = null;
+
+type Prefs = Pick<State, "privacy" | "notify">;
+const ServerPrefs = React.createContext<Prefs | null>(null);
+
+/** Entrega las preferencias guardadas en Supabase (las lee el layout raíz con el usuario). */
+export function ProfilePrefsProvider({ value, children }: { value: Prefs; children: React.ReactNode }) {
+  if (typeof window !== "undefined" && hydratedFrom !== value) {
+    load();
+    hydratedFrom = value;
+    remote = true;
+    state = { ...state, privacy: value.privacy, notify: value.notify };
+  }
+  React.useEffect(() => {
+    listeners.forEach((l) => l());
+  }, [value]);
+  return React.createElement(ServerPrefs.Provider, { value }, children);
+}
 const listeners = new Set<() => void>();
 const serverSnapshot = initial();
 
@@ -41,7 +63,8 @@ function load() {
 function set(next: State) {
   state = next;
   try {
-    window.sessionStorage.setItem(KEY, JSON.stringify(state));
+    // Con Supabase solo se guarda en el navegador lo que no es preferencia (notificaciones leídas).
+    window.sessionStorage.setItem(KEY, JSON.stringify(remote ? { read: state.read } : state));
   } catch {
     /* ignorar */
   }
@@ -49,6 +72,8 @@ function set(next: State) {
 }
 
 export function useProfileState() {
+  const server = React.useContext(ServerPrefs);
+  const serverState = React.useMemo(() => (server ? { ...serverSnapshot, ...server } : serverSnapshot), [server]);
   return useSyncExternalStore(
     (l) => {
       load();
@@ -56,7 +81,7 @@ export function useProfileState() {
       return () => listeners.delete(l);
     },
     () => (load(), state),
-    () => serverSnapshot,
+    () => serverState,
   );
 }
 
@@ -67,10 +92,13 @@ export const profileActions = {
   setPrivacy(key: PrivacyKey, value: boolean) {
     load();
     set({ ...state, privacy: { ...state.privacy, [key]: value } });
+    if (remote) void savePrivacy(key, value);
   },
   setNotify(key: NotifyKey, value: boolean) {
     load();
-    set({ ...state, notify: { ...state.notify, [key]: value } });
+    const notify = { ...state.notify, [key]: value };
+    set({ ...state, notify });
+    if (remote) void saveNotify(notify);
   },
   markRead(id: string) {
     load();
