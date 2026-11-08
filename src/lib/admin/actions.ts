@@ -30,3 +30,19 @@ export async function decideRequest(
   // TODO (bloque de notificaciones): avisarle al vecino.
   return { ok: true };
 }
+
+/** X7 · Retirar o mantener una publicación reportada. */
+export async function resolveReport(id: string, action: "removed" | "kept"): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("resolver_reporte", {
+    p_reporte: id,
+    p_accion: action === "removed" ? "retirar" : "mantener",
+  });
+  revalidatePath("/", "layout");
+  if (error) {
+    if (error.message.includes("YA_RESUELTO")) return { ok: false, error: "Este reporte ya se resolvió." };
+    return { ok: false, error: "No pudimos guardar la decisión. Inténtalo de nuevo." };
+  }
+  // TODO (bloque de notificaciones): avisarle al vendedor.
+  return { ok: true };
+}

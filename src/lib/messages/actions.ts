@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function sendMessage(
   to: string,
   text: string,
+  productId?: string,
 ): Promise<{ ok: true; id: string; createdAt: string } | { ok: false; error: string }> {
   const body = text.trim();
   if (!body) return { ok: false, error: "Escribe un mensaje." };
@@ -13,7 +14,7 @@ export async function sendMessage(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("mensajes")
-    .insert({ para: to, texto: body })
+    .insert(productId ? { para: to, texto: body, producto_id: productId } : { para: to, texto: body })
     .select("id, created_at")
     .single();
   if (error || !data) {

@@ -6,20 +6,32 @@ import { EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Screen, ScreenHeader } from "@/components/app/screen";
 import { formatPrice } from "@/lib/directory/data";
-import { getReport } from "@/lib/admin/data";
+import type { Report } from "@/lib/admin/data";
 import { adminActions } from "@/lib/admin/store";
+import { resolveReport } from "@/lib/admin/actions";
+import * as React from "react";
 import { AdminActionBar, Tag } from "./ui";
 
 /** X7 · Revisar reporte (484:5929) → X8 */
-export function ReviewReport({ id }: { id: string }) {
-  const report = getReport(id)!;
+export function ReviewReport({ report, remote }: { report: Report; remote: boolean }) {
   const p = report.product;
   const router = useRouter();
+  const [error, setError] = React.useState<string>();
+  const [saving, startSave] = React.useTransition();
 
   function resolve(result: "removed" | "kept") {
-    // TODO: POST /api/admin/reportes/:id/{retirar|mantener}
-    adminActions.resolveReport(report.id, result);
-    router.push(result === "removed" ? `/admin/reportes/${report.id}/retirada` : "/admin");
+    const next = result === "removed" ? `/admin/reportes/${report.id}/retirada` : "/admin";
+    if (!remote) {
+      // Modo demo: queda en el navegador.
+      adminActions.resolveReport(report.id, result);
+      return router.push(next);
+    }
+    setError(undefined);
+    startSave(async () => {
+      const r = await resolveReport(report.id, result);
+      if (!r.ok) return setError(r.error);
+      router.push(next);
+    });
   }
 
   return (
@@ -36,7 +48,7 @@ export function ReviewReport({ id }: { id: string }) {
           className="flex w-full items-center gap-3.5 rounded-[18px] border border-option-border bg-surface p-3.5"
         >
           <Image
-            src={p.image}
+            src={p.image || "/images/marketplace/buso.jpg"}
             alt=""
             width={72}
             height={72}
@@ -66,8 +78,15 @@ export function ReviewReport({ id }: { id: string }) {
       </div>
 
       <AdminActionBar>
-        <Button onClick={() => resolve("removed")}>Retirar publicación</Button>
-        <Button variant="secondary" onClick={() => resolve("kept")}>
+        {error && (
+          <p role="alert" className="text-caption text-error">
+            {error}
+          </p>
+        )}
+        <Button onClick={() => resolve("removed")} disabled={saving}>
+          {saving ? "Guardando…" : "Retirar publicación"}
+        </Button>
+        <Button variant="secondary" onClick={() => resolve("kept")} disabled={saving}>
           Mantener publicación
         </Button>
       </AdminActionBar>

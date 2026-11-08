@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { saveAvatarUrl } from "./actions";
 
 /** Reduce la foto a 512 px de lado (JPEG) antes de subirla: carga rápido y no gasta espacio. */
-async function shrink(file: File, max = 512): Promise<Blob> {
+export async function shrink(file: File, max = 512): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");

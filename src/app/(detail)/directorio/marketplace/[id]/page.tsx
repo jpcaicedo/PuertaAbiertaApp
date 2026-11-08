@@ -6,23 +6,22 @@ import { Screen } from "@/components/app/screen";
 import { ActionBar, DetailHero, DetailSheet } from "@/components/agenda/primitives";
 import { ReportButton } from "@/components/directorio/marketplace";
 import { Avatar, VerifiedMark } from "@/components/directorio/ui";
-import { formatPrice, getProduct, products } from "@/lib/directory/data";
+import { formatPrice } from "@/lib/directory/data";
+import { getProductBySlug } from "@/lib/directory/queries";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 type Props = { params: Promise<{ id: string }> };
 
-export function generateStaticParams() {
-  return products.map((p) => ({ id: p.id }));
-}
-
 export async function generateMetadata({ params }: Props) {
-  const p = getProduct((await params).id);
+  const p = await getProductBySlug((await params).id);
   return { title: p ? `${p.title} · Marketplace` : "Marketplace" };
 }
 
 /** D9 · Detalle del producto (484:4027) · el reporte abre D14 */
 export default async function ProductoPage({ params }: Props) {
-  const p = getProduct((await params).id);
+  const [p, me] = await Promise.all([getProductBySlug((await params).id), getCurrentUser()]);
   if (!p) notFound();
+  const isMine = !!p.ownerId && p.ownerId === me?.id;
 
   return (
     <Screen>
@@ -56,13 +55,24 @@ export default async function ProductoPage({ params }: Props) {
           </div>
         </div>
 
-        <ReportButton productId={p.id} />
+        {p.status !== "activo" && (
+          <p className="w-full rounded-card bg-note p-3 text-caption text-text-secondary">
+            {p.status === "vendido" ? "Este producto ya se vendió." : "La administración retiró esta publicación."}
+          </p>
+        )}
+        {!isMine && p.status === "activo" && <ReportButton productId={p.id} dbId={p.dbId} />}
       </DetailSheet>
 
       <ActionBar>
-        <Button asChild className="rounded-[80px]">
-          <Link href={`/directorio/marketplace/${p.id}/mensaje`}>Escribir al vendedor</Link>
-        </Button>
+        {isMine ? (
+          <Button asChild variant="secondary" className="rounded-[80px]">
+            <Link href="/directorio/mis-publicaciones">Es tu publicación · Ver mis publicaciones</Link>
+          </Button>
+        ) : (
+          <Button asChild className="rounded-[80px]">
+            <Link href={`/directorio/marketplace/${p.id}/mensaje`}>Escribir al vendedor</Link>
+          </Button>
+        )}
       </ActionBar>
     </Screen>
   );

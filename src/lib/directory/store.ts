@@ -1,7 +1,9 @@
 "use client";
 
+import * as React from "react";
 import { useSyncExternalStore } from "react";
 import type { ProductCategory, ProductCondition } from "./data";
+import { deleteProduct, markProductSold } from "./actions";
 
 /**
  * Publicaciones propias y borrador de servicio (mock en sessionStorage).
@@ -22,6 +24,10 @@ export type MyListing = {
   publishedAt: string;
   soldAt?: string;
   messages: number;
+  /** Con Supabase: primera foto, id en la base de datos y si la administración lo retiró. */
+  image?: string;
+  dbId?: string;
+  removed?: boolean;
 };
 
 export type ServiceDraft = {
@@ -68,6 +74,24 @@ const initial = (): State => ({
 
 let state: State = initial();
 let loaded = false;
+/** true cuando las publicaciones vienen de Supabase. */
+let remote = false;
+let hydratedFrom: MyListing[] | null = null;
+const ServerListings = React.createContext<MyListing[] | null>(null);
+
+/** Entrega las publicaciones propias leídas en el servidor (Mis publicaciones, Marketplace, Perfil). */
+export function DirectoryListingsProvider({ value, children }: { value: MyListing[]; children: React.ReactNode }) {
+  if (typeof window !== "undefined" && hydratedFrom !== value) {
+    load();
+    hydratedFrom = value;
+    remote = true;
+    state = { ...state, listings: value };
+  }
+  React.useEffect(() => {
+    listeners.forEach((l) => l());
+  }, [value]);
+  return React.createElement(ServerListings.Provider, { value }, children);
+}
 const listeners = new Set<() => void>();
 const serverSnapshot = initial();
 
@@ -93,6 +117,8 @@ function set(next: State) {
 }
 
 export function useDirectoryState() {
+  const server = React.useContext(ServerListings);
+  const serverState = React.useMemo(() => (server ? { ...serverSnapshot, listings: server } : serverSnapshot), [server]);
   return useSyncExternalStore(
     (l) => {
       load();
@@ -100,7 +126,7 @@ export function useDirectoryState() {
       return () => listeners.delete(l);
     },
     () => (load(), state),
-    () => serverSnapshot,
+    () => serverState,
   );
 }
 
@@ -113,7 +139,15 @@ export const directoryActions = {
   },
   markSold(id: string) {
     load();
+    const listing = state.listings.find((l) => l.id === id);
     set({ ...state, listings: state.listings.map((l) => (l.id === id ? { ...l, soldAt: new Date().toISOString() } : l)) });
+    if (remote && listing?.dbId) void markProductSold(listing.dbId);
+  },
+  remove(id: string) {
+    load();
+    const listing = state.listings.find((l) => l.id === id);
+    set({ ...state, listings: state.listings.filter((l) => l.id !== id) });
+    if (remote && listing?.dbId) void deleteProduct(listing.dbId);
   },
   saveServiceDraft(draft: ServiceDraft | null) {
     load();

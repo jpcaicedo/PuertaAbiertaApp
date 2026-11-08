@@ -1,12 +1,16 @@
 import { Screen, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from "@/components/app/screen";
 import { MyListingsScreen } from "@/components/directorio/marketplace";
 import { community } from "@/lib/mock-data";
+import { getMyListings } from "@/lib/directory/queries";
+import { DirectoryListingsProvider } from "@/lib/directory/store";
 
 export const metadata = { title: "Mis publicaciones · Marketplace" };
+export const dynamic = "force-dynamic";
 
 /** D12 · Mis publicaciones (484:5149) · D12b · Producto vendido · D13 · ¿Ya lo vendiste? */
-export default function MisPublicacionesPage() {
-  return (
+export default async function MisPublicacionesPage() {
+  const mine = await getMyListings();
+  const content = (
     <Screen className="pb-24">
       <ScreenHeader backHref="/directorio/marketplace" />
       <ScreenBody gap={12} className="pt-3">
@@ -18,4 +22,5 @@ export default function MisPublicacionesPage() {
       </ScreenBody>
     </Screen>
   );
+  return mine ? <DirectoryListingsProvider value={mine}>{content}</DirectoryListingsProvider> : content;
 }
