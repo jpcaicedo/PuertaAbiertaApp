@@ -209,6 +209,7 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 7. `supabase/seed_0004.sql` — los tres servicios de ejemplo (Camila, Juan y Marta, sin cuenta).
 8. `supabase/migrations/0005_marketplace.sql` — productos, reportes y la carpeta de fotos (`productos`).
 9. `supabase/seed_0005.sql` — los cuatro productos de ejemplo y un reporte para la administración.
+10. `supabase/migrations/0006_mensajes.sql` — mensajes a vecinos de ejemplo y eliminar mensajes.
 
 Para copiar un archivo, ábrelo en VS Code o en el Bloc de notas y usa Ctrl+A y Ctrl+C. Desde Git Bash, `clip` daña las tildes.
 
@@ -241,7 +242,7 @@ Cada código sirve una sola vez. Para reutilizarlo, borra el usuario en Authenti
 
 **Bloque 4.** Directorio: servicios reales (publicar, buscar, ver perfil), respetando "Aparecer en el directorio" y mostrando el celular solo si el vecino acepta llamadas. Mensajes entre vecinos guardados y en vivo, con bandeja en Perfil → Mensajes. Privacidad (P3) y notificaciones (P4) se guardan en el perfil. Foto de perfil al registrarse o tocando la foto en Perfil. La administración entra directo a `/admin` al iniciar sesión y tiene acceso al panel desde Perfil.
 
-Los servicios de ejemplo no tienen cuenta: su chat es el de muestra y no le llega a nadie.
+Los vecinos de ejemplo (Camila, Juan, Marta y los vendedores del Marketplace) no tienen cuenta: lo que les escribes se guarda y aparece en tu bandeja, pero nadie responde. En cualquier chat, tocar un mensaje permite eliminarlo (los propios se borran para los dos; los recibidos solo dejan de verse en tu chat) y la papelera de arriba vacía la conversación.
 
 **Bloque 5.** Marketplace: publicar con hasta 5 fotos (se reducen a 1200 px y se guardan en Storage), escribirle al vendedor (el mensaje queda ligado al producto), marcar como vendido, eliminar y Mis publicaciones con cuántos vecinos escribieron. Los servicios propios del Directorio también se pueden eliminar desde su perfil (papelera). Reportes: el vecino reporta sin que se sepa quién fue; la administración los revisa en `/admin` y puede retirar la publicación o mantenerla.
 

@@ -19,7 +19,7 @@ export default async function ConversacionPage({ params }: Props) {
       avatar={peer.avatar}
       subtitle={peer.tower ? `Torre ${peer.tower}` : "Vecino del conjunto"}
       initialMessages={conversation.messages}
-      remote={{ me: conversation.me, peerId: peer.id, acceptsMessages: peer.acceptsMessages }}
+      remote={{ me: conversation.me, peerId: peer.id, acceptsMessages: peer.acceptsMessages, demo: peer.demo }}
     />
   );
 }

@@ -12,8 +12,8 @@ export default async function MensajeVendedorPage({ params }: Props) {
   const [p, me] = await Promise.all([getProductBySlug((await params).id), getCurrentUser()]);
   if (!p) notFound();
   if (p.ownerId && p.ownerId === me?.id) redirect("/directorio/mis-publicaciones");
-  // Vendedor con cuenta: conversación real (queda ligada al producto). Vendedor de ejemplo: chat de muestra.
-  const conversation = p.ownerId ? await getConversation(p.ownerId) : null;
+  // Vendedor con cuenta: conversación real (queda ligada al producto). Vendedor de ejemplo: se guarda, no responde.
+  const conversation = await getConversation(p.ownerId ?? `demo-p-${p.id}`);
   return (
     <ChatScreen
       backHref={`/directorio/marketplace/${p.id}`}
@@ -28,6 +28,7 @@ export default async function MensajeVendedorPage({ params }: Props) {
               peerId: conversation.peer.id,
               acceptsMessages: conversation.peer.acceptsMessages,
               productId: p.dbId,
+              demo: conversation.peer.demo,
             }
           : undefined
       }
