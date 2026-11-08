@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/app/screen";
 import { ActionBar, DetailHero, DetailSheet } from "@/components/agenda/primitives";
 import { ReportButton } from "@/components/directorio/marketplace";
+import { DeleteProductButton } from "@/components/directorio/delete-product";
 import { Avatar, VerifiedMark } from "@/components/directorio/ui";
 import { formatPrice } from "@/lib/directory/data";
 import { getProductBySlug } from "@/lib/directory/queries";
@@ -65,9 +66,12 @@ export default async function ProductoPage({ params }: Props) {
 
       <ActionBar>
         {isMine ? (
-          <Button asChild variant="secondary" className="rounded-[80px]">
-            <Link href="/directorio/mis-publicaciones">Es tu publicación · Ver mis publicaciones</Link>
-          </Button>
+          <>
+            <Button asChild variant="secondary" className="flex-1 rounded-[80px]">
+              <Link href="/directorio/mis-publicaciones">Es tu publicación · Ver mis publicaciones</Link>
+            </Button>
+            {p.dbId && <DeleteProductButton dbId={p.dbId} title={p.title} />}
+          </>
         ) : (
           <Button asChild className="rounded-[80px]">
             <Link href={`/directorio/marketplace/${p.id}/mensaje`}>Escribir al vendedor</Link>
