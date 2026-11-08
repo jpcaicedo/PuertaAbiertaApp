@@ -18,8 +18,8 @@ export default async function MensajeVecinoPage({ params }: Props) {
   if (!s) notFound();
   // Es su propio servicio: lo que le escriben está en la bandeja.
   if (s.ownerId && s.ownerId === me?.id) redirect("/mensajes");
-  // Vecino con cuenta: conversación real. Vecino de ejemplo: el chat de muestra del diseño.
-  const conversation = s.ownerId ? await getConversation(s.ownerId) : null;
+  // Vecino con cuenta: conversación real. Vecino de ejemplo: se guarda lo que escribes, pero no responde.
+  const conversation = await getConversation(s.ownerId ?? `demo-s-${s.id}`);
   return (
     <ChatScreen
       backHref={`/directorio/${s.id}`}
@@ -30,7 +30,12 @@ export default async function MensajeVecinoPage({ params }: Props) {
       initialMessages={conversation ? conversation.messages : (sampleChats[s.id] ?? [])}
       remote={
         conversation
-          ? { me: conversation.me, peerId: conversation.peer.id, acceptsMessages: conversation.peer.acceptsMessages }
+          ? {
+              me: conversation.me,
+              peerId: conversation.peer.id,
+              acceptsMessages: conversation.peer.acceptsMessages,
+              demo: conversation.peer.demo,
+            }
           : undefined
       }
     />

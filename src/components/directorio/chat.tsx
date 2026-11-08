@@ -2,9 +2,17 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ChevronLeft, Phone, SendHorizontal, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Info, Phone, SendHorizontal, ShieldCheck, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  BottomSheet,
+  BottomSheetClose,
+  BottomSheetContent,
+  BottomSheetDescription,
+  BottomSheetTitle,
+} from "@/components/ui/bottom-sheet";
 import type { ChatMessage } from "@/lib/directory/data";
-import { markConversationRead, sendMessage } from "@/lib/messages/actions";
+import { deleteConversation, deleteMessage, markConversationRead, sendMessage } from "@/lib/messages/actions";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./ui";
@@ -20,7 +28,7 @@ type ChatScreenProps = {
    * Conversación real en Supabase: quién soy y con quién hablo. Sin esto, el chat es de ejemplo
    * (los mensajes solo se ven en pantalla).
    */
-  remote?: { me: string; peerId: string; acceptsMessages: boolean; productId?: string };
+  remote?: { me: string; peerId: string; acceptsMessages: boolean; productId?: string; demo?: boolean };
 };
 
 function nowLabel() {
@@ -33,7 +41,7 @@ function nowLabel() {
  * D4 · Mensaje a Camila / D4b · Mensaje al vendedor.
  * Cabecera con avatar 40, aviso de privacidad, burbujas (mías azules, de la otra persona #F2F4F6)
  * y caja para escribir con botón de enviar de 44.
- * TODO: conectar con la mensajería real (WebSocket o polling).
+ * Tocar una burbuja permite eliminar ese mensaje; la papelera de arriba vacía la conversación.
  */
 export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMessages, remote }: ChatScreenProps) {
   const [messages, setMessages] = React.useState(initialMessages);
@@ -41,12 +49,42 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
   const [error, setError] = React.useState<string>();
   const endRef = React.useRef<HTMLDivElement>(null);
   const blocked = remote ? !remote.acceptsMessages : false;
+  const [selected, setSelected] = React.useState<ChatMessage | null>(null);
+  const [clearOpen, setClearOpen] = React.useState(false);
+  const firstName = name.split(/\s+/)[0];
+
+  function removeMessage(m: ChatMessage) {
+    setMessages((list) => list.filter((x) => x.id !== m.id));
+    setSelected(null);
+    if (remote && !m.id.startsWith("tmp-")) {
+      void deleteMessage(m.id).then((r) => {
+        if (!r.ok) {
+          setMessages((list) => [...list, m]);
+          setError("No pudimos eliminar el mensaje. Inténtalo de nuevo.");
+        }
+      });
+    }
+  }
+
+  function clearConversation() {
+    const before = messages;
+    setMessages([]);
+    setClearOpen(false);
+    if (remote) {
+      void deleteConversation(remote.peerId).then((r) => {
+        if (!r.ok) {
+          setMessages(before);
+          setError("No pudimos vaciar la conversación. Inténtalo de nuevo.");
+        }
+      });
+    }
+  }
 
   // Mensajes nuevos en vivo: Supabase avisa cuando el otro vecino escribe.
   const me = remote?.me;
   const peerId = remote?.peerId;
   React.useEffect(() => {
-    if (!me || !peerId) return;
+    if (!me || !peerId || peerId.startsWith("demo-")) return;
     const supabase = createClient();
     const channel = supabase
       .channel(`chat-${me}-${peerId}`)
@@ -106,6 +144,16 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
           <h1 className="truncate text-body font-semibold text-text">{name}</h1>
           <p className="truncate text-caption text-text-secondary">{subtitle}</p>
         </div>
+        {messages.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setClearOpen(true)}
+            aria-label="Vaciar conversación"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-full text-text-secondary transition-colors hover:bg-error/10 hover:text-error outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <Trash2 className="size-5" strokeWidth={2} aria-hidden />
+          </button>
+        )}
         {phone && (
           <a
             href={`tel:${phone}`}
@@ -122,18 +170,28 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
           <ShieldCheck className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
           Solo vecinos verificados. Tu teléfono no se comparte.
         </p>
+        {remote?.demo && (
+          <p className="mb-4 flex w-fit max-w-full items-start gap-1.5 rounded-[10px] bg-note px-3 py-1.5 text-overline text-text-secondary">
+            <Info className="mt-px size-3.5 shrink-0" strokeWidth={2} aria-hidden />
+            {firstName} es una cuenta de ejemplo: tus mensajes se guardan, pero nadie va a responder.
+          </p>
+        )}
         <ol aria-label={`Conversación con ${name}`} className="flex flex-col gap-4">
           {messages.map((m) => (
             <li key={m.id} className={cn("flex max-w-[278px] flex-col gap-1", m.mine ? "items-end self-end" : "items-start self-start")}>
-              <p
+              <button
+                type="button"
+                onClick={() => setSelected(m)}
+                aria-haspopup="dialog"
                 className={cn(
-                  "rounded-card px-3.5 py-2.5 text-body",
+                  "cursor-pointer rounded-card px-3.5 py-2.5 text-left text-body transition-opacity active:opacity-80 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
                   m.mine ? "bg-brand text-white" : "bg-note text-text",
                 )}
               >
                 <span className="sr-only">{m.mine ? "Tú: " : `${name}: `}</span>
                 {m.text}
-              </p>
+                <span className="sr-only">. Toca para eliminar.</span>
+              </button>
               <span className="text-overline text-text-tertiary">{m.time}</span>
             </li>
           ))}
@@ -170,6 +228,57 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
           <SendHorizontal className="size-5" strokeWidth={2} aria-hidden />
         </button>
       </form>
+
+      {/* Eliminar un mensaje */}
+      <BottomSheet open={selected !== null} onOpenChange={(o) => !o && setSelected(null)}>
+        <BottomSheetContent className="gap-4 pt-3 pb-[max(28px,env(safe-area-inset-bottom))]">
+          <div aria-hidden className="flex w-full justify-center">
+            <div className="h-[5px] w-10 rounded-[3px] bg-handle" />
+          </div>
+          <div className="flex w-full flex-col gap-1.5 px-1">
+            <BottomSheetTitle className="text-headline font-bold">¿Eliminar este mensaje?</BottomSheetTitle>
+            <BottomSheetDescription className="text-text-tertiary">
+              {selected?.mine
+                ? remote?.demo || !remote
+                  ? "Se borra de esta conversación."
+                  : `Se borra para ti y para ${firstName}.`
+                : `Deja de verse en tu chat. ${firstName} lo sigue viendo.`}
+            </BottomSheetDescription>
+          </div>
+          {selected && (
+            <p className="line-clamp-3 w-full rounded-card bg-note px-3.5 py-2.5 text-body text-text">{selected.text}</p>
+          )}
+          <Button className="bg-error text-text-on-dark hover:bg-error/90" onClick={() => selected && removeMessage(selected)}>
+            Eliminar mensaje
+          </Button>
+          <BottomSheetClose asChild>
+            <Button variant="link">Cancelar</Button>
+          </BottomSheetClose>
+        </BottomSheetContent>
+      </BottomSheet>
+
+      {/* Vaciar la conversación */}
+      <BottomSheet open={clearOpen} onOpenChange={setClearOpen}>
+        <BottomSheetContent className="gap-4 pt-3 pb-[max(28px,env(safe-area-inset-bottom))]">
+          <div aria-hidden className="flex w-full justify-center">
+            <div className="h-[5px] w-10 rounded-[3px] bg-handle" />
+          </div>
+          <div className="flex w-full flex-col gap-1.5 px-1">
+            <BottomSheetTitle className="text-headline font-bold">¿Vaciar la conversación con {firstName}?</BottomSheetTitle>
+            <BottomSheetDescription className="text-text-tertiary">
+              {remote && !remote.demo
+                ? `Se borran los mensajes que enviaste y dejas de ver los que te llegaron. ${firstName} conserva los suyos.`
+                : "Se borran todos los mensajes de esta conversación."}
+            </BottomSheetDescription>
+          </div>
+          <Button className="bg-error text-text-on-dark hover:bg-error/90" onClick={clearConversation}>
+            Vaciar conversación
+          </Button>
+          <BottomSheetClose asChild>
+            <Button variant="link">Cancelar</Button>
+          </BottomSheetClose>
+        </BottomSheetContent>
+      </BottomSheet>
     </main>
   );
 }
