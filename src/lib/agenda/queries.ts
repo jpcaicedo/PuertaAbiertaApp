@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getSessionUser } from "@/lib/supabase/server";
 import { agendaItems, type AgendaItem, type Category, type Person } from "./data";
 import { formatTimeRange, formatWhen, spotsLeft } from "./format";
 import { getZone, ofZone } from "@/lib/zones/data";
@@ -145,9 +145,7 @@ function toMine(rows: Row[], attendees: Attendee[], me: string): AgendaState {
 
 async function load(filter: { slug?: string; from?: string }): Promise<AgendaData & { me: string | null }> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { items: [], mine: emptyMine(), me: null };
 
   let query = supabase.from("actividades").select(COLUMNS).eq("estado", "publicada");

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getSessionUser } from "@/lib/supabase/server";
 import { SUPABASE_URL } from "@/lib/supabase/config";
 import type { NotifyKey, PrivacyKey } from "./data";
 
@@ -14,9 +14,7 @@ const privacyColumn: Record<PrivacyKey, string> = {
 
 async function me() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   return { supabase, user };
 }
 

@@ -1,5 +1,5 @@
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getSessionUser } from "@/lib/supabase/server";
 import type { ChatMessage } from "@/lib/directory/data";
 
 /**
@@ -71,9 +71,7 @@ const toPeer = (p: PersonRow): Peer => ({
 
 async function session() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   return { supabase, me: user?.id ?? null };
 }
 

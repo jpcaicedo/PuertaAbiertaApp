@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getSessionUser } from "@/lib/supabase/server";
 import { demoCurrentUser, type CurrentUser, type Role } from "./types";
 
 export type { CurrentUser, Role } from "./types";
@@ -29,9 +29,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   if (!isSupabaseConfigured) return demoCurrentUser;
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return null;
 
   const [{ data }, { count: unread }] = await Promise.all([
