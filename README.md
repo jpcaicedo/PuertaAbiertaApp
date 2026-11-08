@@ -202,6 +202,10 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 
 1. `supabase/migrations/0001_base.sql` — tablas, permisos (RLS) y la función que crea el perfil al registrarse.
 2. `supabase/seed.sql` — Residencial Samán, torres A–E y códigos de prueba.
+3. `supabase/migrations/0002_agenda_avisos.sql` — avisos, actividades, inscripciones y lista de espera.
+4. `supabase/seed_0002.sql` — avisos y actividades de ejemplo (las fechas se calculan desde el día en que se corre).
+
+Para copiar un archivo, ábrelo en VS Code o en el Bloc de notas y usa Ctrl+A y Ctrl+C. Desde Git Bash, `clip` daña las tildes.
 
 ### Códigos de prueba
 
@@ -222,6 +226,10 @@ Cada código sirve una sola vez. Para reutilizarlo, borra el usuario en Authenti
 - Activar **Secure email change** y **Secure password change**.
 - Generar códigos nuevos (los de arriba son públicos).
 
-### Qué está conectado (bloque 1)
+### Qué está conectado
 
-Registro (R2–R6), inicio de sesión, cierre de sesión, protección de rutas y `/admin` solo para administración. Nombre, unidad y foto del usuario salen de la base de datos. El resto de secciones (agenda, avisos, zonas, directorio, marketplace) siguen con datos de ejemplo hasta los próximos bloques. La recuperación de contraseña aún es simulada.
+**Bloque 1.** Registro (R2–R6), inicio de sesión, cierre de sesión, protección de rutas y `/admin` solo para administración. Nombre, unidad y foto del usuario salen de la base de datos.
+
+**Bloque 2.** Avisos: la administración publica desde `/admin/avisos/nuevo` (para todo el conjunto o una torre) y los residentes los ven en Inicio, en `/avisos` y en el detalle; los marcados "Solo residentes" no muestran Compartir. Agenda: actividades, inscripción con cupos reales, lista de espera (si alguien cancela, entra el primero de la fila) y "Voy" en los eventos del barrio. "Próxima actividad" en Inicio y "Mis reservas y actividades" en Perfil usan esos datos.
+
+Siguen con datos de ejemplo: proponer y aprobar actividades, zonas comunes, directorio, marketplace, notificaciones y la recuperación de contraseña.

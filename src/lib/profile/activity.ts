@@ -1,15 +1,26 @@
 "use client";
 
+import * as React from "react";
 import { formatTimeRange } from "@/lib/agenda/format";
 import { getZone, ofZone, ZONES_TODAY } from "@/lib/zones/data";
 import { useZonesState } from "@/lib/zones/store";
+import { agendaToday } from "@/lib/agenda/today";
 import { myActivities, type MyActivity } from "./data";
+
+/** Inscripciones reales de la agenda (leídas en el servidor). Sin proveedor = datos de ejemplo. */
+const RealAgenda = React.createContext<MyActivity[] | null>(null);
+
+export function MyAgendaProvider({ value, children }: { value: MyActivity[]; children: React.ReactNode }) {
+  return React.createElement(RealAgenda.Provider, { value }, children);
+}
 
 /**
  * Actividad de P2 = mock base + reservas hechas en Zonas comunes (flujo 6).
  * Devuelve próximas (ordenadas por día) y anteriores.
  */
-export function useMyActivity(today = ZONES_TODAY) {
+export function useMyActivity(todayOverride?: string) {
+  const real = React.useContext(RealAgenda);
+  const today = todayOverride ?? (real ? agendaToday() : ZONES_TODAY);
   const zones = useZonesState();
 
   const fromZones: MyActivity[] = zones.bookings.flatMap((b) => {
@@ -34,7 +45,7 @@ export function useMyActivity(today = ZONES_TODAY) {
     ];
   });
 
-  const all = [...myActivities, ...fromZones];
+  const all = [...(real ?? myActivities), ...fromZones];
   const upcoming = all.filter((a) => a.status !== "past" && a.day >= today).sort((a, b) => a.day.localeCompare(b.day));
   const past = all.filter((a) => a.status === "past" || a.day < today).sort((a, b) => b.day.localeCompare(a.day));
   return { upcoming, past };

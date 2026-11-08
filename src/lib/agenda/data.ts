@@ -24,7 +24,10 @@ export const timesOfDay: { id: TimeOfDay; label: string; from: number; to: numbe
 export type Person = { name: string; tower?: string; avatar?: string };
 
 type AgendaBase = {
+  /** Parte de la URL (/agenda/yoga-al-atardecer). */
   id: string;
+  /** Id en Supabase. Solo existe con backend; en modo demo no hay. */
+  dbId?: string;
   title: string;
   /** YYYY-MM-DD */
   date: string;

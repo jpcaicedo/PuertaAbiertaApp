@@ -41,7 +41,7 @@ export function ActivityDetail({ activity }: { activity: CommunityActivity }) {
 
   const enroll = React.useCallback(() => {
     if (full) return setWaitlistFor(activity);
-    agendaActions.enroll(activity.id);
+    agendaActions.enroll(activity);
     setConfirmOpen(true);
   }, [activity, full]);
   useActionParam("inscribirme", enroll);
@@ -75,7 +75,7 @@ export function ActivityDetail({ activity }: { activity: CommunityActivity }) {
 
       <ActionBar>
         {isEnrolled ? (
-          <Button variant="secondary" className="rounded-[80px]" onClick={() => agendaActions.cancel(activity.id)}>
+          <Button variant="secondary" className="rounded-[80px]" onClick={() => agendaActions.cancel(activity)}>
             Cancelar mi inscripción
           </Button>
         ) : waitlist[activity.id] ? (
@@ -122,14 +122,15 @@ export function NeighborhoodEventDetail({ event }: { event: NeighborhoodEvent })
   const isGoing = going.includes(event.id);
 
   const markGoing = React.useCallback(() => {
-    if (!going.includes(event.id)) agendaActions.toggleGoing(event.id);
+    if (!going.includes(event.id)) agendaActions.toggleGoing(event);
     setConfirmOpen(true);
-  }, [event.id, going]);
+  }, [event, going]);
   useActionParam("voy", markGoing);
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.place)}`;
-  const others = event.goingFromBuilding.map((p) => p.name.split(" ")[0]);
-  const othersText = `${others.slice(0, -1).join(", ")} y ${others.at(-1)}`;
+  const others = event.goingFromBuilding.map((p) => p.name.split(" ")[0]).filter((n) => n);
+  const othersText =
+    others.length > 1 ? `${others.slice(0, -1).join(", ")} y ${others.at(-1)}` : (others[0] ?? "");
 
   return (
     <>
@@ -181,7 +182,7 @@ export function NeighborhoodEventDetail({ event }: { event: NeighborhoodEvent })
           </a>
         </Button>
         {isGoing ? (
-          <Button variant="secondary" className="flex-1 rounded-[80px]" onClick={() => agendaActions.toggleGoing(event.id)}>
+          <Button variant="secondary" className="flex-1 rounded-[80px]" onClick={() => agendaActions.toggleGoing(event)}>
             <Check className="text-success" strokeWidth={2.5} aria-hidden />
             Vas a ir
           </Button>
@@ -198,7 +199,11 @@ export function NeighborhoodEventDetail({ event }: { event: NeighborhoodEvent })
         icon={Check}
         tone="success"
         title="Tus vecinos verán que vas"
-        description={`${othersText} también van. Pueden ponerse de acuerdo para ir juntos desde la portería.`}
+        description={
+          othersText
+            ? `${othersText} también ${others.length === 1 ? "va" : "van"}. Pueden ponerse de acuerdo para ir juntos desde la portería.`
+            : "Eres de los primeros del conjunto en apuntarte. Cuéntales a tus vecinos para ir juntos."
+        }
         noHandle
       >
         <Button asChild className="rounded-[80px]">

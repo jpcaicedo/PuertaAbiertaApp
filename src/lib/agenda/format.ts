@@ -1,4 +1,5 @@
-import { AGENDA_TODAY, type AgendaItem, type CommunityActivity, type TimeOfDay, timesOfDay } from "./data";
+import { type AgendaItem, type CommunityActivity, type TimeOfDay, timesOfDay } from "./data";
+import { agendaToday } from "./today";
 
 const WEEKDAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 const WEEKDAYS_SHORT = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
@@ -30,14 +31,14 @@ export function formatTimeRange(start: string, end: string) {
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** "Hoy, miércoles 14 de octubre" · "Jueves 15 de octubre" */
-export function formatLongDate(day: string, today = AGENDA_TODAY) {
+export function formatLongDate(day: string, today = agendaToday()) {
   const d = parseDay(day);
   const label = `${WEEKDAYS[d.getDay()]} ${d.getDate()} de ${MONTHS[d.getMonth()]}`;
   return day === today ? `Hoy, ${label}` : cap(label);
 }
 
 /** Píldora de las tarjetas: "Hoy · 6:30 p. m." · "Jue 15 · 7:00 p. m." */
-export function formatWhen(item: Pick<AgendaItem, "date" | "start">, today = AGENDA_TODAY) {
+export function formatWhen(item: Pick<AgendaItem, "date" | "start">, today = agendaToday()) {
   const d = parseDay(item.date);
   const prefix = item.date === today ? "Hoy" : `${cap(WEEKDAYS_SHORT[d.getDay()].toLowerCase())} ${d.getDate()}`;
   return `${prefix} · ${formatTime(item.start)}`;

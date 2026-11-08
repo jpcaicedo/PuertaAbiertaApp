@@ -10,6 +10,8 @@ import { Screen, ScreenHeader } from "@/components/app/screen";
 import { ListGroup, PageHeading, SettingRow } from "@/components/perfil/ui";
 import { audiences, type AudienceId } from "@/lib/admin/data";
 import { adminActions } from "@/lib/admin/store";
+import { publishNotice } from "@/lib/notices/actions";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
 import { AdminActionBar } from "./ui";
 
@@ -29,6 +31,8 @@ export function PublishNotice() {
   const [shareable, setShareable] = React.useState(true);
   const [notify, setNotify] = React.useState(true);
   const [errors, setErrors] = React.useState<Errors>({});
+  const [sendError, setSendError] = React.useState<string>();
+  const [publishing, startPublish] = React.useTransition();
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,9 +43,18 @@ export function PublishNotice() {
     setErrors(found);
     if (Object.keys(found).length) return;
 
-    // TODO: POST /api/avisos — si `notify`, la API envía la notificación push.
-    adminActions.publish({ id: `aviso-${Date.now()}`, title: title.trim(), when: when.trim(), shareable });
-    router.push(`/admin/avisos/publicado?para=${audience}`);
+    const done = () => router.push(`/admin/avisos/publicado?para=${audience}`);
+    if (!isSupabaseConfigured) {
+      // Modo demo: queda en el navegador.
+      adminActions.publish({ id: `aviso-${Date.now()}`, title: title.trim(), when: when.trim(), shareable });
+      return done();
+    }
+    setSendError(undefined);
+    startPublish(async () => {
+      const result = await publishNotice({ title, message, when, audience, shareable, notify });
+      if (!result.ok) return setSendError(result.error);
+      done();
+    });
   }
 
   return (
@@ -157,8 +170,13 @@ export function PublishNotice() {
       </form>
 
       <AdminActionBar>
-        <Button type="submit" form="aviso">
-          Publicar aviso
+        {sendError && (
+          <p role="alert" className="text-caption text-error">
+            {sendError}
+          </p>
+        )}
+        <Button type="submit" form="aviso" disabled={publishing}>
+          {publishing ? "Publicando…" : "Publicar aviso"}
         </Button>
       </AdminActionBar>
     </Screen>

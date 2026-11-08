@@ -41,7 +41,14 @@ export function ActivityCard({ activity }: { activity: Activity }) {
   return (
     <article className={`relative flex w-full flex-col gap-3.5 overflow-hidden rounded-[20px] bg-surface ${cardFocus}`}>
       <div className="relative h-[150px] w-full">
-        <Image src={activity.image} alt={activity.imageAlt} fill sizes="(max-width: 430px) 100vw, 390px" quality={90} className="object-cover" />
+        {activity.image ? (
+          <Image src={activity.image} alt={activity.imageAlt} fill sizes="(max-width: 430px) 100vw, 390px" quality={90} className="object-cover" />
+        ) : (
+          // Actividad sin foto: la cabecera ilustrada de la agenda.
+          <div className="absolute inset-0 grid place-items-center bg-illustration" aria-hidden>
+            <Users className="size-14 text-illustration-ink" strokeWidth={2} />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/0" aria-hidden />
         {/* Píldora de cuándo */}
         <span className="absolute top-5 left-3 inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-1 text-micro font-bold tracking-[0.44px] text-white drop-shadow-[0_1px_1px_rgb(0_0_0/0.05)]">

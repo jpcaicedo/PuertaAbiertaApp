@@ -56,7 +56,9 @@ export function ActivityListCard({ activity, onJoinWaitlist }: ActivityCardProps
   const href = `/agenda/${activity.id}`;
   const isEnrolled = enrolled.includes(activity.id);
   const waitPosition = waitlist[activity.id];
-  const full = spotsLeft(activity) === 0;
+  // El cupo propio cuenta en el resumen una vez inscrita (como en el detalle).
+  const view = isEnrolled ? { ...activity, enrolled: Math.min(activity.capacity, activity.enrolled + 1) } : activity;
+  const full = spotsLeft(view) === 0;
 
   return (
     <article className={cardBase}>
@@ -77,7 +79,7 @@ export function ActivityListCard({ activity, onJoinWaitlist }: ActivityCardProps
         </p>
         <p className={cn("flex items-center gap-1.5 text-caption", full ? "text-warning" : "text-success")}>
           <Users className="size-4 shrink-0" strokeWidth={2} aria-hidden />
-          {capacityLabel(activity)}
+          {capacityLabel(view)}
         </p>
 
         <div className="relative z-10 w-full">
