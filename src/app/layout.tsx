@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { CurrentUserProvider } from "@/components/app/current-user";
+import { LiveNotifications } from "@/components/app/live-notifications";
 import { ThemeProvider } from "@/components/app/theme-provider";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import "./globals.css";
@@ -48,7 +49,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="es" className={jakarta.variable} suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <CurrentUserProvider user={user}>{children}</CurrentUserProvider>
+          <CurrentUserProvider user={user}>
+            {children}
+            {/* Aviso flotante cuando llega una notificación, en cualquier pantalla. */}
+            <LiveNotifications />
+          </CurrentUserProvider>
         </ThemeProvider>
       </body>
     </html>

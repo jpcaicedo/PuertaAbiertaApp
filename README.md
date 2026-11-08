@@ -213,6 +213,7 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 11. `supabase/migrations/0007_notificaciones.sql` — notificaciones dentro de la app (se crean solas con disparadores).
 12. `supabase/migrations/0008_actividades_pasadas.sql` — no deja inscribirse a actividades que ya empezaron.
 13. `supabase/migrations/0009_borrar_mensajes.sql` — borrar mensajes como en WhatsApp (para mí / para todos).
+14. `supabase/migrations/0010_textos_notificaciones.sql` — respeta las mayúsculas de los títulos en las notificaciones.
 
 Las actividades que ya empezaron dicen "En curso" y las que terminaron "Ya terminó", quedan al final del día y no permiten inscribirse ni marcar "Voy".
 
@@ -251,6 +252,6 @@ Los vecinos de ejemplo (Camila, Juan, Marta y los vendedores del Marketplace) no
 
 **Bloque 5.** Marketplace: publicar con hasta 5 fotos (se reducen a 1200 px y se guardan en Storage), escribirle al vendedor (el mensaje queda ligado al producto), marcar como vendido, eliminar y Mis publicaciones con cuántos vecinos escribieron. Los servicios propios del Directorio también se pueden eliminar desde su perfil (papelera). Reportes: el vecino reporta sin que se sepa quién fue; la administración los revisa en `/admin` y puede retirar la publicación o mantenerla.
 
-**Bloque 6.** Notificaciones dentro de la app: la base de datos las crea sola cuando la administración publica un aviso (a todos o a una torre), responde una reserva o una actividad propuesta, cuando llega un mensaje (una por conversación mientras no se lea), se libera un cupo de la lista de espera, o retiran una publicación. A la administración le llegan las solicitudes y reportes nuevos. Respetan las preferencias de P4 (los avisos y la moderación siempre llegan). La campana muestra el punto rojo en vivo y N1 permite marcar todas como leídas. No hay notificaciones push al celular todavía.
+**Bloque 6.** Notificaciones dentro de la app: la base de datos las crea sola cuando la administración publica un aviso (a todos o a una torre), responde una reserva o una actividad propuesta, cuando llega un mensaje (una por conversación mientras no se lea), se libera un cupo de la lista de espera, o retiran una publicación. A la administración le llegan las solicitudes y reportes nuevos. Respetan las preferencias de P4 (los avisos y la moderación siempre llegan). La campana muestra el punto rojo en vivo y N1 permite marcar todas como leídas. Además, en cualquier pantalla aparece un aviso flotante arriba, como en una app del celular, que lleva a lo que avisa; se cierra solo, con la X o deslizándolo hacia arriba, y no aparece si ya estás viendo eso. No hay notificaciones push al celular todavía.
 
 Sigue simulada: la recuperación de contraseña.

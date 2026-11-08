@@ -2,22 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Bell, Calendar, CircleCheck, Flag, Megaphone, MessageCircle, ShieldAlert, Tag, type LucideIcon } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Screen, ScreenHeader } from "@/components/app/screen";
 import { useCurrentUser } from "@/components/app/current-user";
-import { notifications, type AppNotification, type NotificationTone } from "@/lib/profile/data";
+import { notifications, type AppNotification } from "@/lib/profile/data";
+import { notificationIcon, toneClasses as tone } from "@/lib/notifications/icons";
 import type { RemoteNotification } from "@/lib/notifications/types";
 import { markAllNotificationsRead, markNotificationRead } from "@/lib/notifications/actions";
 import { isUnread, profileActions, useProfileState } from "@/lib/profile/store";
 import { cn } from "@/lib/utils";
 import { ListGroup, SectionLabel } from "./ui";
-
-const tone: Record<NotificationTone, string> = {
-  success: "bg-status-success-soft text-status-success",
-  brand: "bg-option-blue text-brand",
-  warm: "bg-option-orange text-illustration-ink",
-  neutral: "bg-surface-muted text-text",
-};
 
 /** Notificación: icono 20 en caja 38, título 15/22 (SemiBold si no está leída), texto 14/20, tiempo 13/18 y punto azul. */
 function NotificationRow({ n, unread, onOpen }: { n: AppNotification; unread: boolean; onOpen?: () => void }) {
@@ -53,17 +47,6 @@ function NotificationRow({ n, unread, onOpen }: { n: AppNotification; unread: bo
   );
 }
 
-/** Icono según el tipo de notificación que llega de Supabase. */
-function iconFor(n: RemoteNotification): LucideIcon {
-  if (n.kind === "aviso") return Megaphone;
-  if (n.kind === "messages") return MessageCircle;
-  if (n.kind === "agenda") return Calendar;
-  if (n.kind === "marketplace") return Tag;
-  if (n.kind === "moderacion") return ShieldAlert;
-  if (n.title.startsWith("Reportaron")) return Flag;
-  return n.tone === "success" ? CircleCheck : Bell;
-}
-
 /** N1 · Notificaciones (484:5594). Con Supabase recibe las reales en `items`. */
 export function NotificationsScreen({ items }: { items?: RemoteNotification[] }) {
   const state = useProfileState();
@@ -72,7 +55,7 @@ export function NotificationsScreen({ items }: { items?: RemoteNotification[] })
   const [, startMarkAll] = React.useTransition();
 
   const remote = items?.map(
-    (n): AppNotification => ({ ...n, icon: iconFor(n), unread: n.unread && !readNow.includes(n.id) }),
+    (n): AppNotification => ({ ...n, icon: notificationIcon(n), unread: n.unread && !readNow.includes(n.id) }),
   );
   const list = remote ?? notifications;
   const unreadOf = (n: AppNotification) => (remote ? n.unread : isUnread(state, n.id));
