@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { HomeHeader } from "@/components/app/home-header";
 import { Screen } from "@/components/app/screen";
 import { formatRating, searchServices, services, type NeighborService, type ServiceCategory } from "@/lib/directory/data";
+import { useCurrentUser } from "@/components/app/current-user";
 import { Avatar, DirectoryTabs, FilterChips, Rating, SearchBar, SearchLink, VerifiedMark } from "./ui";
 
 /* ───────────────────────── Cabecera común D1 / D8 ───────────────────────── */
@@ -79,6 +80,9 @@ export function ServicesScreen({ services: all = services }: { services?: Neighb
 
 /** Tarjeta de servicio (Figma "Vecino · Camila"): blanca, radio 20, padding 16, gap 10. */
 function ServiceCard({ service: s }: { service: NeighborService }) {
+  const me = useCurrentUser();
+  // No tiene sentido escribirse a uno mismo: en su propio servicio, el vecino ve sus mensajes.
+  const isMine = !!s.ownerId && s.ownerId === me.id;
   return (
     <article className="relative flex w-full flex-col items-start gap-2.5 rounded-[20px] bg-surface p-4 has-[a.stretched:focus-visible]:ring-2 has-[a.stretched:focus-visible]:ring-brand">
       <div className="flex items-center gap-3">
@@ -101,10 +105,16 @@ function ServiceCard({ service: s }: { service: NeighborService }) {
       {s.rating && <Rating value={formatRating(s.rating)} label={`${s.reviewCount} reseñas de vecinos`} />}
       <p className="text-caption text-text-secondary">{s.description}</p>
       <div className="relative z-10 flex w-full items-center gap-2">
-        <Button asChild className="h-[46px] flex-1">
-          <Link href={`/directorio/${s.id}/mensaje`}>Enviar mensaje</Link>
-        </Button>
-        {s.callHours && s.phone && (
+        {isMine ? (
+          <Button asChild variant="secondary" className="h-[46px] flex-1">
+            <Link href="/mensajes">Tu servicio · Ver mensajes</Link>
+          </Button>
+        ) : (
+          <Button asChild className="h-[46px] flex-1">
+            <Link href={`/directorio/${s.id}/mensaje`}>Enviar mensaje</Link>
+          </Button>
+        )}
+        {!isMine && s.callHours && s.phone && (
           <a
             href={`tel:${s.phone}`}
             aria-label={`Llamar a ${s.neighbor.firstName}`}

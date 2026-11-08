@@ -1,4 +1,5 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { ChatScreen } from "@/components/directorio/chat";
 import { sampleChats } from "@/lib/directory/data";
 import { getServiceBySlug } from "@/lib/directory/queries";
@@ -13,8 +14,10 @@ export async function generateMetadata({ params }: Props) {
 
 /** D4 · Mensaje a Camila (484:3808) */
 export default async function MensajeVecinoPage({ params }: Props) {
-  const s = await getServiceBySlug((await params).id);
+  const [s, me] = await Promise.all([getServiceBySlug((await params).id), getCurrentUser()]);
   if (!s) notFound();
+  // Es su propio servicio: lo que le escriben está en la bandeja.
+  if (s.ownerId && s.ownerId === me?.id) redirect("/mensajes");
   // Vecino con cuenta: conversación real. Vecino de ejemplo: el chat de muestra del diseño.
   const conversation = s.ownerId ? await getConversation(s.ownerId) : null;
   return (
