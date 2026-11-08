@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ChevronRight, Wrench } from "lucide-react";
 import { HomeHeader } from "@/components/app/home-header";
 import { ActivityCard, NoticeCard, PlaceCard } from "@/components/app/home-cards";
 import { SectionHeader } from "@/components/app/section-header";
@@ -32,6 +34,20 @@ export default async function InicioPage() {
             </p>
           )}
         </section>
+
+        <Link
+          href="/pqrs/nuevo"
+          className="mt-3 flex w-full items-center gap-3 rounded-[20px] bg-surface p-3 transition-shadow hover:shadow-card outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          <span aria-hidden className="grid size-11 shrink-0 place-items-center rounded-chip bg-option-orange text-status-pending">
+            <Wrench className="size-5" strokeWidth={2} />
+          </span>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-body font-semibold text-text">¿Algo se dañó?</span>
+            <span className="text-caption text-text-secondary">Repórtalo a la administración con una foto</span>
+          </span>
+          <ChevronRight className="size-5 shrink-0 text-text-tertiary" strokeWidth={2} aria-hidden />
+        </Link>
 
         <section aria-labelledby="actividad" className="mt-[26px] flex w-full flex-col gap-[26px]">
           <SectionHeader id="actividad" title="Próxima actividad" action={{ label: "Ver agenda", href: "/agenda" }} />

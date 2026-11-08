@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Book, Building2, Calendar, Camera, Eye, LogOut, MessageCircle, Tag } from "lucide-react";
+import { Book, Building2, Calendar, Camera, Eye, LogOut, MessageCircle, Tag, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BottomSheet,
@@ -96,6 +96,12 @@ export function ProfileScreen({ unreadMessages = 0 }: { unreadMessages?: number 
               }
             />
           )}
+          <NavRow
+            href="/pqrs"
+            icon={Wrench}
+            title="Reportes y PQRS"
+            subtitle="Daños, peticiones y quejas a la administración"
+          />
           <NavRow
             href="/directorio/mis-publicaciones"
             icon={Tag}

@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Building2, ChevronRight, Flag, Megaphone, type LucideIcon } from "lucide-react";
+import { Bell, Building2, ChevronRight, Flag, Megaphone, Wrench, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Screen } from "@/components/app/screen";
-import { ListGroup, PageHeading, SectionLabel } from "@/components/perfil/ui";
+import { ListGroup, NavRow, PageHeading, SectionLabel } from "@/components/perfil/ui";
 import { community } from "@/lib/mock-data";
 import { activeNotices, adminRequests, reports, type AdminNotice, type AdminRequest, type Report } from "@/lib/admin/data";
 import { useAdminState } from "@/lib/admin/store";
+import { useDemoPqrs } from "@/lib/pqrs/store";
 import { useCurrentUser } from "@/components/app/current-user";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { cn } from "@/lib/utils";
@@ -52,10 +53,12 @@ export function AdminHome({
   notices: serverNotices,
   requests,
   openReports: serverReports,
+  openPqrs: serverPqrs,
 }: {
   notices?: AdminNotice[];
   requests?: AdminRequest[];
   openReports?: Report[];
+  openPqrs?: number;
 }) {
   const state = useAdminState();
   const user = useCurrentUser();
@@ -65,6 +68,8 @@ export function AdminHome({
   const openReports = serverReports ?? reports.filter((r) => !state.reports[r.id]);
   // Con Supabase llegan de la base de datos; en modo demo, los de ejemplo más los publicados en el navegador.
   const notices = serverNotices ?? [...state.notices, ...activeNotices];
+  const demoPqrs = useDemoPqrs();
+  const openPqrs = serverPqrs ?? demoPqrs?.filter((p) => p.status !== "resuelto").length ?? 0;
 
   return (
     <Screen className="pb-tabbar">
@@ -141,6 +146,19 @@ export function AdminHome({
             label="Avisos activos"
           />
         </div>
+
+        <ListGroup label="Reportes y PQRS">
+          <NavRow
+            href="/admin/pqrs"
+            icon={Wrench}
+            title="Reportes y PQRS"
+            subtitle={
+              openPqrs
+                ? `${openPqrs} ${openPqrs === 1 ? "abierto" : "abiertos"} · daños, peticiones y quejas`
+                : "Sin reportes abiertos"
+            }
+          />
+        </ListGroup>
 
         <Button asChild className="w-full">
           <Link href="/admin/avisos/nuevo">Publicar aviso</Link>
