@@ -68,7 +68,6 @@ export const zones: Zone[] = [
     capacity: 40,
     location: "Primer piso, Torre A",
     shortPlace: "Salón social, Torre A",
-    image: "/images/zonas/salon-social.jpg",
     minDays: 3,
     handover: "entrega el salón limpio",
     slots: [
