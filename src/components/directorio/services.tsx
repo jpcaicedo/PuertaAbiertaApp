@@ -6,7 +6,7 @@ import { ChevronRight, Phone, Plus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HomeHeader } from "@/components/app/home-header";
 import { Screen } from "@/components/app/screen";
-import { formatRating, reviewsLabel, searchServices, services, type NeighborService, type ServiceCategory } from "@/lib/directory/data";
+import { reviewsLabel, searchServices, services, type NeighborService, type ServiceCategory } from "@/lib/directory/data";
 import { useCurrentUser } from "@/components/app/current-user";
 import { Avatar, DirectoryTabs, FilterChips, Rating, SearchBar, SearchLink, VerifiedMark } from "./ui";
 
@@ -102,7 +102,7 @@ function ServiceCard({ service: s }: { service: NeighborService }) {
           {s.title}
         </Link>
       </h2>
-      {s.rating && <Rating value={formatRating(s.rating)} label={reviewsLabel(s.reviewCount, true)} />}
+      {s.rating && <Rating rating={s.rating} label={reviewsLabel(s.reviewCount, true)} />}
       <p className="text-caption text-text-secondary">{s.description}</p>
       <div className="relative z-10 flex w-full items-center gap-2">
         {isMine ? (
@@ -165,7 +165,7 @@ export function ServiceSearchScreen({
                       <span className="text-caption text-text-secondary">
                         {s.neighbor.name} · Torre {s.neighbor.tower}
                       </span>
-                      {s.rating && <Rating value={formatRating(s.rating)} label={reviewsLabel(s.reviewCount)} />}
+                      {s.rating && <Rating rating={s.rating} label={reviewsLabel(s.reviewCount)} />}
                     </span>
                     <ChevronRight className="size-5 shrink-0 text-text-tertiary" strokeWidth={2} aria-hidden />
                   </Link>
