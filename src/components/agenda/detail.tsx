@@ -11,6 +11,7 @@ import { Badge } from "@/components/app/badge";
 import type { CommunityActivity, NeighborhoodEvent } from "@/lib/agenda/data";
 import { capacityLabel, formatLongDate, formatTime, formatTimeRange, organizerLabel, spotsLeft } from "@/lib/agenda/format";
 import { agendaActions, useAgendaState } from "@/lib/agenda/store";
+import { activityStatus } from "@/lib/agenda/today";
 import { ActionBar, AvatarStack, DetailHero, DetailSheet, InfoList, InfoRow, Note } from "./primitives";
 import { ResultSheet, WaitlistSheets } from "./sheets";
 
@@ -36,10 +37,13 @@ export function ActivityDetail({ activity }: { activity: CommunityActivity }) {
   const [waitlistFor, setWaitlistFor] = React.useState<CommunityActivity | null>(null);
   const isEnrolled = enrolled.includes(activity.id);
   const full = spotsLeft(activity) === 0;
+  const status = activityStatus(activity);
   // El cupo propio cuenta en el resumen una vez inscrita.
   const view = isEnrolled ? { ...activity, enrolled: Math.min(activity.capacity, activity.enrolled + 1) } : activity;
 
   const enroll = React.useCallback(() => {
+    // Ya empezó o terminó: no se inscribe (por ejemplo, desde un enlace viejo con ?inscribirme=1).
+    if (activityStatus(activity) !== "upcoming") return;
     if (full) return setWaitlistFor(activity);
     agendaActions.enroll(activity);
     setConfirmOpen(true);
@@ -74,7 +78,11 @@ export function ActivityDetail({ activity }: { activity: CommunityActivity }) {
       </DetailSheet>
 
       <ActionBar>
-        {isEnrolled ? (
+        {status !== "upcoming" ? (
+          <Button variant="secondary" disabled className="rounded-[80px] disabled:opacity-100">
+            {status === "ended" ? "Esta actividad ya terminó" : `En curso · hasta las ${formatTime(activity.end)}`}
+          </Button>
+        ) : isEnrolled ? (
           <Button variant="secondary" className="rounded-[80px]" onClick={() => agendaActions.cancel(activity)}>
             Cancelar mi inscripción
           </Button>
@@ -120,8 +128,10 @@ export function NeighborhoodEventDetail({ event }: { event: NeighborhoodEvent })
   const { going } = useAgendaState();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const isGoing = going.includes(event.id);
+  const ended = activityStatus(event) === "ended";
 
   const markGoing = React.useCallback(() => {
+    if (activityStatus(event) === "ended") return;
     if (!going.includes(event.id)) agendaActions.toggleGoing(event);
     setConfirmOpen(true);
   }, [event, going]);
@@ -181,7 +191,11 @@ export function NeighborhoodEventDetail({ event }: { event: NeighborhoodEvent })
             Cómo llegar
           </a>
         </Button>
-        {isGoing ? (
+        {ended ? (
+          <Button variant="secondary" disabled className="flex-1 rounded-[80px] disabled:opacity-100">
+            Ya terminó
+          </Button>
+        ) : isGoing ? (
           <Button variant="secondary" className="flex-1 rounded-[80px]" onClick={() => agendaActions.toggleGoing(event)}>
             <Check className="text-success" strokeWidth={2.5} aria-hidden />
             Vas a ir

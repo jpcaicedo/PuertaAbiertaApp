@@ -6,7 +6,8 @@ import { Award, BookOpen, Building, Check, Clock, Dumbbell, GraduationCap, MapPi
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/app/badge";
 import type { Category, CommunityActivity, NeighborhoodEvent } from "@/lib/agenda/data";
-import { capacityLabel, formatWhen, organizerLabel, spotsLeft } from "@/lib/agenda/format";
+import { capacityLabel, formatTime, formatWhen, organizerLabel, spotsLeft } from "@/lib/agenda/format";
+import { activityStatus, type TimeStatus } from "@/lib/agenda/today";
 import { useAgendaState } from "@/lib/agenda/store";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +26,7 @@ const categoryIcon: Record<Category, LucideIcon> = {
 };
 
 /** Cabecera de tarjeta: foto 150 o ilustración 120 (#FFF1DC + icono 56), con píldora de hora. */
-function CardHeader({ item }: { item: CommunityActivity | NeighborhoodEvent }) {
+function CardHeader({ item, status }: { item: CommunityActivity | NeighborhoodEvent; status: TimeStatus }) {
   const Icon = categoryIcon[item.categories[0]];
   return (
     <div className={cn("relative w-full shrink-0", item.image ? "h-[150px]" : "h-[120px] bg-illustration")}>
@@ -34,9 +35,14 @@ function CardHeader({ item }: { item: CommunityActivity | NeighborhoodEvent }) {
       ) : (
         <Icon className="absolute top-8 left-1/2 size-14 -translate-x-1/2 text-illustration-ink" strokeWidth={2} aria-hidden />
       )}
-      <span className="absolute top-3 left-3 inline-flex items-center gap-[5px] rounded-[20px] bg-brand py-[5px] pr-2.5 pl-2 text-overline font-medium text-white">
+      <span
+        className={cn(
+          "absolute top-3 left-3 inline-flex items-center gap-[5px] rounded-[20px] py-[5px] pr-2.5 pl-2 text-overline font-medium text-white",
+          status === "ended" ? "bg-ink/70" : "bg-brand",
+        )}
+      >
         <Clock className="size-3.5" strokeWidth={2} aria-hidden />
-        {formatWhen(item)}
+        {status === "ended" ? "Ya terminó" : status === "ongoing" ? `En curso · hasta ${formatTime(item.end)}` : formatWhen(item)}
       </span>
     </div>
   );
@@ -56,13 +62,16 @@ export function ActivityListCard({ activity, onJoinWaitlist }: ActivityCardProps
   const href = `/agenda/${activity.id}`;
   const isEnrolled = enrolled.includes(activity.id);
   const waitPosition = waitlist[activity.id];
+  // Ya empezó o terminó: no se puede inscribir ni entrar a la lista de espera.
+  const status = activityStatus(activity);
+  const started = status !== "upcoming";
   // El cupo propio cuenta en el resumen una vez inscrita (como en el detalle).
   const view = isEnrolled ? { ...activity, enrolled: Math.min(activity.capacity, activity.enrolled + 1) } : activity;
   const full = spotsLeft(view) === 0;
 
   return (
-    <article className={cardBase}>
-      <CardHeader item={activity} />
+    <article className={cn(cardBase, status === "ended" && "opacity-70")}>
+      <CardHeader item={activity} status={status} />
       <div className="flex w-full flex-col items-start gap-2 px-4 pt-3.5 pb-4">
         <Badge icon={Building}>En tu conjunto</Badge>
         <Badge icon={activity.organizer.leader ? Award : Users} tone={activity.organizer.leader ? "warning" : "brand"}>
@@ -90,7 +99,7 @@ export function ActivityListCard({ activity, onJoinWaitlist }: ActivityCardProps
                 Ya estás inscrita
               </Link>
             </Button>
-          ) : waitPosition ? (
+          ) : started ? null : waitPosition ? (
             <Button variant="secondary" disabled className="h-[52px] disabled:opacity-100">
               En lista de espera · puesto {waitPosition}
             </Button>
@@ -114,10 +123,11 @@ export function NeighborhoodEventCard({ event }: { event: NeighborhoodEvent }) {
   const { going } = useAgendaState();
   const href = `/agenda/${event.id}`;
   const isGoing = going.includes(event.id);
+  const status = activityStatus(event);
 
   return (
-    <article className={cardBase}>
-      <CardHeader item={event} />
+    <article className={cn(cardBase, status === "ended" && "opacity-70")}>
+      <CardHeader item={event} status={status} />
       <div className="flex w-full flex-col items-start gap-2 px-4 pt-3.5 pb-4">
         <Badge icon={MapPin} tone="warning">
           En el barrio · {event.distanceLabel}
@@ -149,7 +159,7 @@ export function NeighborhoodEventCard({ event }: { event: NeighborhoodEvent }) {
                 Vas a ir
               </Link>
             </Button>
-          ) : (
+          ) : status === "ended" ? null : (
             <Button asChild className="h-[52px]">
               <Link href={`${href}?voy=1`}>Voy</Link>
             </Button>

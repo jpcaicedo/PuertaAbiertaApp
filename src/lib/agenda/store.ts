@@ -98,6 +98,11 @@ export const agendaActions = {
     if (!state.enrolled.includes(item.id)) set({ ...state, enrolled: [...state.enrolled, item.id] });
     if (item.dbId) {
       void enrollActivity(item.dbId).then((r) => {
+        // No se pudo (por ejemplo, ya empezó): se deshace el cambio en pantalla.
+        if (!r.ok) {
+          set({ ...state, enrolled: without(state.enrolled, item.id) });
+          return;
+        }
         // Si alguien tomó el último cupo antes, el servidor lo deja en lista de espera.
         if (r.ok && r.status === "espera" && r.position) {
           set({
