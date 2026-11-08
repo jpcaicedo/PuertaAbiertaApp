@@ -42,37 +42,34 @@ export async function markConversationRead(peerId: string) {
 }
 
 /**
- * Eliminar un mensaje. Si lo envié yo, se borra para los dos.
- * Si lo recibí, deja de verse solo en mi chat.
+ * Eliminar un mensaje, como en WhatsApp:
+ *   · "me": deja de verse solo en mi chat (lo haya enviado o recibido).
+ *   · "all": se borra para los dos (solo los que envié).
  */
-export async function deleteMessage(id: string): Promise<{ ok: boolean }> {
+export async function deleteMessage(id: string, scope: "me" | "all"): Promise<{ ok: boolean }> {
   const supabase = await createClient();
   const user = await getSessionUser();
   if (!user) return { ok: false };
-  const { data: mine } = await supabase.from("mensajes").delete().eq("id", id).eq("de", user.id).select("id");
-  if (!mine?.length) {
-    const { error } = await supabase.from("mensajes").update({ oculto_para_receptor: true }).eq("id", id).eq("para", user.id);
-    if (error) return { ok: false };
+  if (scope === "all") {
+    const { data, error } = await supabase.from("mensajes").delete().eq("id", id).eq("de", user.id).select("id");
+    revalidatePath("/", "layout");
+    return { ok: !error && (data?.length ?? 0) > 0 };
   }
+  const { error } = await supabase.rpc("ocultar_mensaje", { p_id: id });
   revalidatePath("/", "layout");
-  return { ok: true };
+  return { ok: !error };
 }
 
-/** Vaciar una conversación: borra lo que envié y oculta lo que recibí. */
+/** Vaciar chat: la conversación desaparece solo para mí; el otro vecino conserva la suya. */
 export async function deleteConversation(peerKey: string): Promise<{ ok: boolean }> {
   const supabase = await createClient();
   const user = await getSessionUser();
   if (!user) return { ok: false };
   const demo = demoKeyToTarget(peerKey);
-  if (demo) {
-    const { error } = await supabase.from("mensajes").delete().eq("de", user.id).eq("para_demo", demo);
-    revalidatePath("/", "layout");
-    return { ok: !error };
-  }
-  const [{ error: e1 }, { error: e2 }] = await Promise.all([
-    supabase.from("mensajes").delete().eq("de", user.id).eq("para", peerKey),
-    supabase.from("mensajes").update({ oculto_para_receptor: true }).eq("de", peerKey).eq("para", user.id),
-  ]);
+  // Vecino de ejemplo: nadie más tiene esos mensajes, así que se borran.
+  const { error } = demo
+    ? await supabase.from("mensajes").delete().eq("de", user.id).eq("para_demo", demo)
+    : await supabase.rpc("vaciar_conversacion", { p_vecino: peerKey });
   revalidatePath("/", "layout");
-  return { ok: !e1 && !e2 };
+  return { ok: !error };
 }

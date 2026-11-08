@@ -212,6 +212,7 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 10. `supabase/migrations/0006_mensajes.sql` — mensajes a vecinos de ejemplo y eliminar mensajes.
 11. `supabase/migrations/0007_notificaciones.sql` — notificaciones dentro de la app (se crean solas con disparadores).
 12. `supabase/migrations/0008_actividades_pasadas.sql` — no deja inscribirse a actividades que ya empezaron.
+13. `supabase/migrations/0009_borrar_mensajes.sql` — borrar mensajes como en WhatsApp (para mí / para todos).
 
 Las actividades que ya empezaron dicen "En curso" y las que terminaron "Ya terminó", quedan al final del día y no permiten inscribirse ni marcar "Voy".
 
@@ -246,7 +247,7 @@ Cada código sirve una sola vez. Para reutilizarlo, borra el usuario en Authenti
 
 **Bloque 4.** Directorio: servicios reales (publicar, buscar, ver perfil), respetando "Aparecer en el directorio" y mostrando el celular solo si el vecino acepta llamadas. Mensajes entre vecinos guardados y en vivo, con bandeja en Perfil → Mensajes. Privacidad (P3) y notificaciones (P4) se guardan en el perfil. Foto de perfil al registrarse o tocando la foto en Perfil. La administración entra directo a `/admin` al iniciar sesión y tiene acceso al panel desde Perfil.
 
-Los vecinos de ejemplo (Camila, Juan, Marta y los vendedores del Marketplace) no tienen cuenta: lo que les escribes se guarda y aparece en tu bandeja, pero nadie responde. En cualquier chat, tocar un mensaje permite eliminarlo (los propios se borran para los dos; los recibidos solo dejan de verse en tu chat) y la papelera de arriba vacía la conversación.
+Los vecinos de ejemplo (Camila, Juan, Marta y los vendedores del Marketplace) no tienen cuenta: lo que les escribes se guarda y aparece en tu bandeja, pero nadie responde. En cualquier chat, mantener presionado un mensaje abre las opciones como en WhatsApp: copiar, eliminar para mí (lo haya enviado o recibido) y, en los propios, eliminar para todos (desaparece en vivo del chat del otro). La papelera de arriba vacía el chat solo para quien lo hace.
 
 **Bloque 5.** Marketplace: publicar con hasta 5 fotos (se reducen a 1200 px y se guardan en Storage), escribirle al vendedor (el mensaje queda ligado al producto), marcar como vendido, eliminar y Mis publicaciones con cuántos vecinos escribieron. Los servicios propios del Directorio también se pueden eliminar desde su perfil (papelera). Reportes: el vecino reporta sin que se sepa quién fue; la administración los revisa en `/admin` y puede retirar la publicación o mantenerla.
 

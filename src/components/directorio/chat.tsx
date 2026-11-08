@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ChevronLeft, Info, Phone, SendHorizontal, ShieldCheck, Trash2 } from "lucide-react";
+import { ChevronLeft, Copy, Info, Phone, SendHorizontal, ShieldCheck, Trash2, UserX, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BottomSheet,
@@ -41,7 +41,8 @@ function nowLabel() {
  * D4 · Mensaje a Camila / D4b · Mensaje al vendedor.
  * Cabecera con avatar 40, aviso de privacidad, burbujas (mías azules, de la otra persona #F2F4F6)
  * y caja para escribir con botón de enviar de 44.
- * Tocar una burbuja permite eliminar ese mensaje; la papelera de arriba vacía la conversación.
+ * Como en WhatsApp: mantener presionado un mensaje abre las opciones (copiar, eliminar para mí,
+ * eliminar para todos). La papelera de arriba vacía el chat solo para quien lo hace.
  */
 export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMessages, remote }: ChatScreenProps) {
   const [messages, setMessages] = React.useState(initialMessages);
@@ -53,11 +54,15 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
   const [clearOpen, setClearOpen] = React.useState(false);
   const firstName = name.split(/\s+/)[0];
 
-  function removeMessage(m: ChatMessage) {
+  /** Con un vecino real, los mensajes propios se pueden borrar para los dos. */
+  const canDeleteForAll = (m: ChatMessage) => m.mine && !!remote && !remote.demo && !m.id.startsWith("tmp-");
+
+  function removeMessage(m: ChatMessage, scope: "me" | "all") {
     setMessages((list) => list.filter((x) => x.id !== m.id));
     setSelected(null);
     if (remote && !m.id.startsWith("tmp-")) {
-      void deleteMessage(m.id).then((r) => {
+      // Con un vecino de ejemplo nadie más tiene el mensaje: se borra del todo.
+      void deleteMessage(m.id, remote.demo && m.mine ? "all" : scope).then((r) => {
         if (!r.ok) {
           setMessages((list) => [...list, m]);
           setError("No pudimos eliminar el mensaje. Inténtalo de nuevo.");
@@ -98,6 +103,11 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
           void markConversationRead(peerId);
         },
       )
+      // "Eliminar para todos" del otro vecino: la burbuja desaparece también aquí.
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "mensajes" }, (payload) => {
+        const id = (payload.old as { id?: string }).id;
+        if (id) setMessages((list) => list.filter((x) => x.id !== id));
+      })
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
@@ -179,19 +189,7 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
         <ol aria-label={`Conversación con ${name}`} className="flex flex-col gap-4">
           {messages.map((m) => (
             <li key={m.id} className={cn("flex max-w-[278px] flex-col gap-1", m.mine ? "items-end self-end" : "items-start self-start")}>
-              <button
-                type="button"
-                onClick={() => setSelected(m)}
-                aria-haspopup="dialog"
-                className={cn(
-                  "cursor-pointer rounded-card px-3.5 py-2.5 text-left text-body transition-opacity active:opacity-80 outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
-                  m.mine ? "bg-brand text-white" : "bg-note text-text",
-                )}
-              >
-                <span className="sr-only">{m.mine ? "Tú: " : `${name}: `}</span>
-                {m.text}
-                <span className="sr-only">. Toca para eliminar.</span>
-              </button>
+              <Bubble message={m} name={name} selected={selected?.id === m.id} onOpenMenu={() => setSelected(m)} />
               <span className="text-overline text-text-tertiary">{m.time}</span>
             </li>
           ))}
@@ -229,28 +227,50 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
         </button>
       </form>
 
-      {/* Eliminar un mensaje */}
+      {/* Opciones del mensaje (mantener presionado) */}
       <BottomSheet open={selected !== null} onOpenChange={(o) => !o && setSelected(null)}>
-        <BottomSheetContent className="gap-4 pt-3 pb-[max(28px,env(safe-area-inset-bottom))]">
+        <BottomSheetContent className="gap-3 pt-3 pb-[max(28px,env(safe-area-inset-bottom))]">
           <div aria-hidden className="flex w-full justify-center">
             <div className="h-[5px] w-10 rounded-[3px] bg-handle" />
           </div>
-          <div className="flex w-full flex-col gap-1.5 px-1">
-            <BottomSheetTitle className="text-headline font-bold">¿Eliminar este mensaje?</BottomSheetTitle>
-            <BottomSheetDescription className="text-text-tertiary">
-              {selected?.mine
-                ? remote?.demo || !remote
-                  ? "Se borra de esta conversación."
-                  : `Se borra para ti y para ${firstName}.`
-                : `Deja de verse en tu chat. ${firstName} lo sigue viendo.`}
-            </BottomSheetDescription>
-          </div>
+          <BottomSheetTitle className="sr-only">Opciones del mensaje</BottomSheetTitle>
+          <BottomSheetDescription className="sr-only">Copia o elimina el mensaje.</BottomSheetDescription>
           {selected && (
-            <p className="line-clamp-3 w-full rounded-card bg-note px-3.5 py-2.5 text-body text-text">{selected.text}</p>
+            <p
+              className={cn(
+                "line-clamp-3 max-w-[85%] rounded-card px-3.5 py-2.5 text-body",
+                selected.mine ? "self-end bg-brand text-white" : "self-start bg-note text-text",
+              )}
+            >
+              {selected.text}
+            </p>
           )}
-          <Button className="bg-error text-text-on-dark hover:bg-error/90" onClick={() => selected && removeMessage(selected)}>
-            Eliminar mensaje
-          </Button>
+          <ul className="flex w-full flex-col overflow-hidden rounded-card bg-surface-muted">
+            <MenuItem
+              icon={Copy}
+              label="Copiar"
+              onClick={() => {
+                if (selected) void navigator.clipboard?.writeText(selected.text).catch(() => undefined);
+                setSelected(null);
+              }}
+            />
+            <MenuItem
+              icon={UserX}
+              label={remote?.demo || !remote ? "Eliminar" : "Eliminar para mí"}
+              hint={remote && !remote.demo ? `${firstName} lo sigue viendo` : undefined}
+              danger
+              onClick={() => selected && removeMessage(selected, "me")}
+            />
+            {selected && canDeleteForAll(selected) && (
+              <MenuItem
+                icon={Users}
+                label="Eliminar para todos"
+                hint={`Se borra también del chat de ${firstName}`}
+                danger
+                onClick={() => removeMessage(selected, "all")}
+              />
+            )}
+          </ul>
           <BottomSheetClose asChild>
             <Button variant="link">Cancelar</Button>
           </BottomSheetClose>
@@ -267,7 +287,7 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
             <BottomSheetTitle className="text-headline font-bold">¿Vaciar la conversación con {firstName}?</BottomSheetTitle>
             <BottomSheetDescription className="text-text-tertiary">
               {remote && !remote.demo
-                ? `Se borran los mensajes que enviaste y dejas de ver los que te llegaron. ${firstName} conserva los suyos.`
+                ? `La conversación desaparece solo de tu chat. ${firstName} la conserva.`
                 : "Se borran todos los mensajes de esta conversación."}
             </BottomSheetDescription>
           </div>
@@ -280,5 +300,105 @@ export function ChatScreen({ backHref, name, avatar, subtitle, phone, initialMes
         </BottomSheetContent>
       </BottomSheet>
     </main>
+  );
+}
+
+/** Una fila del menú de opciones del mensaje. */
+function MenuItem({
+  icon: Icon,
+  label,
+  hint,
+  danger,
+  onClick,
+}: {
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  label: string;
+  hint?: string;
+  danger?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <li className="border-b border-border-subtle last:border-b-0">
+      <button
+        type="button"
+        onClick={onClick}
+        className="flex w-full cursor-pointer items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-note outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+      >
+        <Icon className={cn("size-5 shrink-0", danger ? "text-error" : "text-text-secondary")} strokeWidth={2} />
+        <span className="flex flex-col">
+          <span className={cn("text-body font-medium", danger ? "text-error" : "text-text")}>{label}</span>
+          {hint && <span className="text-overline text-text-tertiary">{hint}</span>}
+        </span>
+      </button>
+    </li>
+  );
+}
+
+/**
+ * Burbuja de mensaje. Mantener presionado (o clic derecho, o Enter con el teclado) abre las opciones;
+ * un toque corto no hace nada, como en WhatsApp.
+ */
+function Bubble({
+  message: m,
+  name,
+  selected,
+  onOpenMenu,
+}: {
+  message: ChatMessage;
+  name: string;
+  selected: boolean;
+  onOpenMenu: () => void;
+}) {
+  const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const start = React.useRef<{ x: number; y: number } | null>(null);
+
+  const cancel = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+    start.current = null;
+  };
+
+  React.useEffect(() => cancel, []);
+
+  return (
+    <button
+      type="button"
+      aria-haspopup="dialog"
+      onPointerDown={(e) => {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        start.current = { x: e.clientX, y: e.clientY };
+        timer.current = setTimeout(() => {
+          timer.current = null;
+          navigator.vibrate?.(15);
+          onOpenMenu();
+        }, 450);
+      }}
+      onPointerMove={(e) => {
+        // Si el dedo se mueve (está desplazando la conversación), no es un toque largo.
+        if (start.current && Math.hypot(e.clientX - start.current.x, e.clientY - start.current.y) > 8) cancel();
+      }}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      onPointerCancel={cancel}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        cancel();
+        onOpenMenu();
+      }}
+      onClick={(e) => {
+        // e.detail === 0: activado con el teclado (Enter o espacio).
+        if (e.detail === 0) onOpenMenu();
+      }}
+      style={{ WebkitTouchCallout: "none" }}
+      className={cn(
+        "cursor-pointer rounded-card px-3.5 py-2.5 text-left text-body select-none transition-[opacity,transform] active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
+        m.mine ? "bg-brand text-white" : "bg-note text-text",
+        selected && "ring-2 ring-brand/60 ring-offset-2 ring-offset-bg",
+      )}
+    >
+      <span className="sr-only">{m.mine ? "Tú: " : `${name}: `}</span>
+      {m.text}
+      <span className="sr-only">. Mantén presionado para ver las opciones.</span>
+    </button>
   );
 }
