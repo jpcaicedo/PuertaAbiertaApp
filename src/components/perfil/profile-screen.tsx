@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Bell, Book, Calendar, Eye, LogOut, Tag } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Bell, Book, Building2, Calendar, Camera, Eye, LogOut, MessageCircle, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BottomSheet,
@@ -18,6 +19,8 @@ import { useCurrentUser, UserAvatar } from "@/components/app/current-user";
 import { useDirectoryState } from "@/lib/directory/store";
 import { activitySummary, useMyActivity } from "@/lib/profile/activity";
 import { useProfileState } from "@/lib/profile/store";
+import { uploadAvatar } from "@/lib/profile/avatar";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { ThemeRow } from "./theme-row";
 import { ListGroup, NavRow, SectionLabel } from "./ui";
 
@@ -29,7 +32,7 @@ export function useVisibleName() {
 }
 
 /** P1 · Perfil (484:5360) */
-export function ProfileScreen() {
+export function ProfileScreen({ unreadMessages = 0 }: { unreadMessages?: number }) {
   const r = useCurrentUser();
   const [signingOut, startSignOut] = React.useTransition();
   const visibleName = useVisibleName();
@@ -48,11 +51,11 @@ export function ProfileScreen() {
           aria-label="Tu perfil"
           className="flex w-full items-center gap-3.5 rounded-[18px] border border-option-border bg-surface p-4"
         >
-          <UserAvatar user={r} size={64} />
+          {isSupabaseConfigured ? <AvatarButton /> : <UserAvatar user={r} size={64} />}
           <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
             <p className="text-subtitle font-bold text-text">{r.fullName}</p>
             <p className="text-label text-text-tertiary">
-              Torre {r.tower}, apto {r.apartment}
+              {r.role === "administracion" ? "Administración" : `Torre ${r.tower}, apto ${r.apartment}`}
             </p>
             <p className="inline-flex items-center gap-1.5 rounded-[12px] bg-option-blue py-1 pr-2.5 pl-2 text-overline font-semibold text-brand">
               <Eye className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
@@ -60,6 +63,17 @@ export function ProfileScreen() {
             </p>
           </div>
         </section>
+
+        {r.role === "administracion" && (
+          <ListGroup label="Administración">
+            <NavRow
+              href="/admin"
+              icon={Building2}
+              title="Panel de administración"
+              subtitle="Solicitudes, avisos y reportes"
+            />
+          </ListGroup>
+        )}
 
         <SectionLabel id="mi-actividad">Mi actividad</SectionLabel>
         <ListGroup label="Mi actividad">
@@ -69,6 +83,18 @@ export function ProfileScreen() {
             title="Mis reservas y actividades"
             subtitle={activitySummary(upcoming)}
           />
+          {isSupabaseConfigured && (
+            <NavRow
+              href="/mensajes"
+              icon={MessageCircle}
+              title="Mensajes"
+              subtitle={
+                unreadMessages
+                  ? `${unreadMessages} sin leer`
+                  : "Tus conversaciones con vecinos"
+              }
+            />
+          )}
           <NavRow
             href="/directorio/mis-publicaciones"
             icon={Tag}
@@ -132,5 +158,51 @@ export function ProfileScreen() {
         </BottomSheetContent>
       </BottomSheet>
     </Screen>
+  );
+}
+
+/** Foto de perfil con botón de cámara: la sube a Supabase y actualiza la pantalla. */
+function AvatarButton() {
+  const r = useCurrentUser();
+  const router = useRouter();
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [uploading, startUpload] = React.useTransition();
+  const [error, setError] = React.useState<string>();
+
+  function pick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setError(undefined);
+    startUpload(async () => {
+      const result = await uploadAvatar(file);
+      if (!result.ok) return setError(result.error);
+      router.refresh();
+    });
+  }
+
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        aria-label={r.avatar ? "Cambiar foto de perfil" : "Agregar foto de perfil"}
+        className="relative block cursor-pointer rounded-full outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+      >
+        <UserAvatar user={r} size={64} className={uploading ? "opacity-50" : undefined} />
+        <span
+          aria-hidden
+          className="absolute -right-0.5 -bottom-0.5 grid size-6 place-items-center rounded-full border-2 border-surface bg-brand text-white"
+        >
+          <Camera className="size-3" strokeWidth={2.5} />
+        </span>
+      </button>
+      <input ref={inputRef} type="file" accept="image/*" className="sr-only" tabIndex={-1} onChange={pick} />
+      {(error || uploading) && (
+        <p role={error ? "alert" : "status"} className="absolute top-full left-0 mt-1 w-40 text-overline text-text-tertiary">
+          {error ?? "Subiendo foto…"}
+        </p>
+      )}
+    </div>
   );
 }

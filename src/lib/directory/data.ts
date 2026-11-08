@@ -49,6 +49,10 @@ export type NeighborService = {
   phone?: string;
   reviews: Review[];
   keywords: string[];
+  /** Con Supabase: cuenta del vecino que lo ofrece (null = vecino de ejemplo, sin cuenta). */
+  ownerId?: string | null;
+  /** Con Supabase: si el vecino acepta mensajes por la app. */
+  acceptsMessages?: boolean;
 };
 
 const camila: Neighbor = {
@@ -128,10 +132,10 @@ export function getService(id: string) {
 
 const fold = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
 
-export function searchServices(query: string) {
+export function searchServices(query: string, list: NeighborService[] = services) {
   const q = fold(query);
-  if (!q) return services;
-  return services.filter((s) => [s.title, s.neighbor.name, s.description, ...s.keywords].some((t) => fold(t).includes(q)));
+  if (!q) return list;
+  return list.filter((s) => [s.title, s.neighbor.name, s.description, ...s.keywords].some((t) => fold(t).includes(q)));
 }
 
 export function initials(name: string) {

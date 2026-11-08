@@ -94,13 +94,16 @@ export async function saveProfileSetup(input: ProfileSetup): Promise<ActionResul
 
 /* ───────────────────────── R7 · Iniciar y cerrar sesión ───────────────────────── */
 
-export async function signIn(email: string, password: string): Promise<{ ok: boolean }> {
+export async function signIn(email: string, password: string): Promise<{ ok: boolean; admin?: boolean }> {
   const cleanEmail = email.trim().toLowerCase();
   if (!isSupabaseConfigured) return { ok: cleanEmail === demoUser.email && password === demoUser.password };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
-  return { ok: !error };
+  const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+  if (error || !data.user) return { ok: false };
+  // La administración entra directo a su panel.
+  const { data: perfil } = await supabase.from("perfiles").select("rol").eq("id", data.user.id).maybeSingle();
+  return { ok: true, admin: perfil?.rol === "administracion" };
 }
 
 export async function signOut() {

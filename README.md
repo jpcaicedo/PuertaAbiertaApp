@@ -205,6 +205,8 @@ En Supabase → SQL Editor, pega y ejecuta en este orden:
 3. `supabase/migrations/0002_agenda_avisos.sql` — avisos, actividades, inscripciones y lista de espera.
 4. `supabase/seed_0002.sql` — avisos y actividades de ejemplo (las fechas se calculan desde el día en que se corre).
 5. `supabase/migrations/0003_solicitudes.sql` — reservas de zonas, actividades propuestas por vecinos y solicitudes para la administración.
+6. `supabase/migrations/0004_directorio.sql` — servicios, mensajes en vivo, preferencias del perfil y la carpeta de fotos (`avatares`).
+7. `supabase/seed_0004.sql` — los tres servicios de ejemplo (Camila, Juan y Marta, sin cuenta).
 
 Para copiar un archivo, ábrelo en VS Code o en el Bloc de notas y usa Ctrl+A y Ctrl+C. Desde Git Bash, `clip` daña las tildes.
 
@@ -235,4 +237,8 @@ Cada código sirve una sola vez. Para reutilizarlo, borra el usuario en Authenti
 
 **Bloque 3.** Zonas comunes: reservas del salón y la BBQ (quedan en revisión), turnos inmediatos del turco y la cancha, y franjas ocupadas reales (sin mostrar de quién son). Crear actividad: con zona común va a la administración; sin zona se publica de una. Administración: lista de solicitudes, aprobar, rechazar o proponer otra fecha con mensaje; una reserva "para la comunidad" aprobada se publica sola en la Agenda. El vecino ve el estado y la respuesta en Mis reservas y actividades.
 
-Siguen con datos de ejemplo: directorio, marketplace, reportes, notificaciones y la recuperación de contraseña.
+**Bloque 4.** Directorio: servicios reales (publicar, buscar, ver perfil), respetando "Aparecer en el directorio" y mostrando el celular solo si el vecino acepta llamadas. Mensajes entre vecinos guardados y en vivo, con bandeja en Perfil → Mensajes. Privacidad (P3) y notificaciones (P4) se guardan en el perfil. Foto de perfil al registrarse o tocando la foto en Perfil. La administración entra directo a `/admin` al iniciar sesión y tiene acceso al panel desde Perfil.
+
+Los servicios de ejemplo no tienen cuenta: su chat es el de muestra y no le llega a nadie.
+
+Siguen con datos de ejemplo: marketplace, reportes, notificaciones y la recuperación de contraseña.

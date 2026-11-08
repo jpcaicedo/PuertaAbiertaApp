@@ -3,13 +3,16 @@
 import * as React from "react";
 import Image from "next/image";
 import { demoCurrentUser, type CurrentUser } from "@/lib/auth/types";
+import { ProfilePrefsProvider } from "@/lib/profile/store";
 import { cn } from "@/lib/utils";
 
 const CurrentUserContext = React.createContext<CurrentUser | null>(null);
 
 /** Comparte con toda la app el vecino que inició sesión (lo carga el layout raíz en el servidor). */
 export function CurrentUserProvider({ user, children }: { user: CurrentUser | null; children: React.ReactNode }) {
-  return <CurrentUserContext.Provider value={user}>{children}</CurrentUserContext.Provider>;
+  const content = <CurrentUserContext.Provider value={user}>{children}</CurrentUserContext.Provider>;
+  // Con Supabase, las preferencias de privacidad y notificaciones vienen guardadas en el perfil.
+  return user?.prefs ? <ProfilePrefsProvider value={user.prefs}>{content}</ProfilePrefsProvider> : content;
 }
 
 /**

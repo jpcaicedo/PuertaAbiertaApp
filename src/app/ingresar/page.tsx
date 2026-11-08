@@ -42,12 +42,12 @@ function IngresarForm() {
       return;
     }
     startLogin(async () => {
-      const { ok } = await signIn(email, password);
+      const { ok, admin } = await signIn(email, password);
       if (!ok) {
         setFailed(true);
         return;
       }
-      router.replace(next);
+      router.replace(admin && next === "/inicio" ? "/admin" : next);
       router.refresh();
     });
   }

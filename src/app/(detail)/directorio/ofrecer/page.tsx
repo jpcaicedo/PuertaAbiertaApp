@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Tag } from "lucide-react";
+import { Clock, Phone, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -15,7 +15,7 @@ import { useCurrentUser } from "@/components/app/current-user";
 import { serviceCategories, type ServiceCategory } from "@/lib/directory/data";
 import { directoryActions, useDirectoryState, type ServiceDraft } from "@/lib/directory/store";
 
-type Errors = Partial<Record<"category" | "title" | "description" | "price" | "availability", string>>;
+type Errors = Partial<Record<"category" | "title" | "description" | "price" | "availability" | "phone", string>>;
 
 const empty: ServiceDraft = {
   category: "",
@@ -25,6 +25,7 @@ const empty: ServiceDraft = {
   availability: "",
   showApartment: true,
   acceptCalls: false,
+  phone: "",
 };
 
 /** D5 · Publicar servicio (484:3846) → D6 vista previa. */
@@ -53,6 +54,7 @@ export default function OfrecerServicioPage() {
     if (form.description.trim().length < 20) found.description = "Escribe al menos dos líneas para que tus vecinos sepan qué incluye.";
     if (!form.price.trim()) found.price = "Indica el precio o escribe «A convenir».";
     if (!form.availability.trim()) found.availability = "Indica cuándo estás disponible.";
+    if (form.acceptCalls && !/^\+?[0-9 ]{7,15}$/.test(form.phone?.trim() ?? "")) found.phone = "Escribe tu celular para que te puedan llamar.";
     setErrors(found);
     if (Object.keys(found).length) return;
     directoryActions.saveServiceDraft(form);
@@ -130,6 +132,23 @@ export default function OfrecerServicioPage() {
               onChange={(v) => set("acceptCalls", v)}
             />
           </ul>
+
+          {form.acceptCalls && (
+            <FormField id="celular" label="Tu celular" error={errors.phone}>
+              {(aria) => (
+                <Input
+                  {...aria}
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={form.phone ?? ""}
+                  onChange={(e) => set("phone", e.target.value)}
+                  placeholder="300 123 4567"
+                  startAdornment={<FieldIcon icon={Phone} />}
+                />
+              )}
+            </FormField>
+          )}
         </ScreenBody>
 
         <ActionBar>

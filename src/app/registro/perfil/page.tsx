@@ -9,6 +9,8 @@ import { ToggleList, ToggleRow } from "@/components/app/controls";
 import { FormField } from "@/components/app/form-field";
 import { Screen, ScreenActions, ScreenBody, ScreenDescription, ScreenHeader, ScreenTitle } from "@/components/app/screen";
 import { saveProfileSetup } from "@/lib/auth/actions";
+import { uploadAvatar } from "@/lib/profile/avatar";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 type Visibility = { apartment: boolean; phone: boolean; directory: boolean };
 
@@ -20,6 +22,7 @@ export default function PerfilPage() {
   const toggle = (key: keyof Visibility) => (checked: boolean) => setVisibility((v) => ({ ...v, [key]: checked }));
   const [error, setError] = React.useState<string>();
   const [saving, startSave] = React.useTransition();
+  const [photo, setPhoto] = React.useState<File | null>(null);
 
   function enter() {
     router.replace("/inicio");
@@ -30,7 +33,13 @@ export default function PerfilPage() {
     e.preventDefault();
     setError(undefined);
     startSave(async () => {
-      // TODO (bloque 3): subir la foto a Supabase Storage.
+      if (photo && isSupabaseConfigured) {
+        const uploaded = await uploadAvatar(photo);
+        if (!uploaded.ok) {
+          setError(uploaded.error);
+          return;
+        }
+      }
       const result = await saveProfileSetup({
         bio,
         showApartment: visibility.apartment,
@@ -53,7 +62,7 @@ export default function PerfilPage() {
           <ScreenTitle>Tu perfil en la comunidad</ScreenTitle>
           <ScreenDescription size="sm">Es opcional y puedes cambiarlo cuando quieras desde Perfil.</ScreenDescription>
 
-          <AvatarPicker />
+          <AvatarPicker onChange={setPhoto} />
 
           <FormField id="bio" label="Cuéntale a tus vecinos algo de ti">
             {(aria) => (

@@ -10,6 +10,8 @@ import { InfoList, InfoRow, Note } from "@/components/agenda/primitives";
 import { Avatar, VerifiedMark } from "@/components/directorio/ui";
 import { useCurrentUser } from "@/components/app/current-user";
 import { directoryActions, useDirectoryState } from "@/lib/directory/store";
+import { publishService } from "@/lib/directory/actions";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /** D6 · Vista previa del servicio (484:3906) */
 export default function VistaPreviaServicioPage() {
@@ -17,6 +19,8 @@ export default function VistaPreviaServicioPage() {
   const router = useRouter();
   const { serviceDraft: d } = useDirectoryState();
   const publishing = React.useRef(false);
+  const [error, setError] = React.useState<string>();
+  const [sending, startSend] = React.useTransition();
 
   // Sin borrador (recarga o enlace directo) se vuelve al formulario.
   React.useEffect(() => {
@@ -28,10 +32,19 @@ export default function VistaPreviaServicioPage() {
   if (!d) return null;
 
   function publish() {
-    // TODO: POST /api/servicios con el borrador.
-    publishing.current = true;
-    router.push("/directorio/ofrecer/listo");
-    directoryActions.saveServiceDraft(null);
+    if (!d) return;
+    const done = () => {
+      publishing.current = true;
+      router.push("/directorio/ofrecer/listo");
+      directoryActions.saveServiceDraft(null);
+    };
+    if (!isSupabaseConfigured) return done();
+    setError(undefined);
+    startSend(async () => {
+      const result = await publishService(d);
+      if (!result.ok) return setError(result.error);
+      done();
+    });
   }
 
   return (
@@ -72,8 +85,13 @@ export default function VistaPreviaServicioPage() {
       </ScreenBody>
 
       <ScreenActions className="pb-[max(44px,env(safe-area-inset-bottom))]">
-        <Button className="rounded-[80px]" onClick={publish}>
-          Publicar
+        {error && (
+          <p role="alert" className="text-caption text-error">
+            {error}
+          </p>
+        )}
+        <Button className="rounded-[80px]" onClick={publish} disabled={sending}>
+          {sending ? "Publicando…" : "Publicar"}
         </Button>
         <Button asChild variant="secondary" className="rounded-[80px]">
           <Link href="/directorio/ofrecer">Editar</Link>
