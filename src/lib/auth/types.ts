@@ -22,6 +22,8 @@ export type CurrentUser = {
   prefs?: { privacy: PrivacyPrefs; notify: NotifyPrefs };
   /** Notificaciones sin leer (punto rojo de la campana). Solo con Supabase. */
   unreadNotifications?: number;
+  /** Mensajes sin leer (número sobre el ícono de Mensajes). Solo con Supabase. */
+  unreadMessages?: number;
 };
 
 /** Sandra, la vecina de ejemplo (modo demo sin Supabase). */
