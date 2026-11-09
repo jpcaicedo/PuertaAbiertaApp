@@ -32,7 +32,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const user = await getSessionUser();
   if (!user) return null;
 
-  const [{ data }, { count: unread }] = await Promise.all([
+  const [{ data }, { count: unread }, { count: unreadMessages }] = await Promise.all([
     supabase
       .from("perfiles")
       .select(
@@ -44,6 +44,12 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
       .from("notificaciones")
       .select("id", { count: "exact", head: true })
       .is("leida_en", null),
+    supabase
+      .from("mensajes")
+      .select("id", { count: "exact", head: true })
+      .eq("para", user.id)
+      .eq("oculto_para_receptor", false)
+      .is("leido_en", null),
   ]);
   if (!data) return null;
 
@@ -63,6 +69,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     bio: data.bio,
     role: data.rol,
     unreadNotifications: unread ?? 0,
+    unreadMessages: unreadMessages ?? 0,
     prefs: {
       privacy: {
         showApartment: data.mostrar_apartamento,
