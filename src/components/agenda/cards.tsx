@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Award, BookOpen, Building, Check, Clock, Dumbbell, GraduationCap, MapPin, PawPrint, Users, UtensilsCrossed, type LucideIcon } from "lucide-react";
@@ -48,23 +49,37 @@ function CardHeader({ item, status }: { item: CommunityActivity | NeighborhoodEv
   );
 }
 
-type ActivityCardProps = {
-  activity: CommunityActivity;
-  onJoinWaitlist: (activity: CommunityActivity) => void;
-};
+/** Estado del vecino en la tarjeta (inscrito, en lista de espera, va a ir): una línea sobre "Ver más". */
+function MyStatus({ children, tone = "success" }: { children: React.ReactNode; tone?: "success" | "neutral" }) {
+  return (
+    <p className={cn("flex items-center gap-1.5 text-caption font-semibold", tone === "success" ? "text-success" : "text-text-secondary")}>
+      {tone === "success" && <Check className="size-4 shrink-0" strokeWidth={2.5} aria-hidden />}
+      {children}
+    </p>
+  );
+}
+
+/** Botón de todas las tarjetas: lleva a la información del plan, donde están Inscribirme y Voy. */
+export function SeeMoreButton({ href, title }: { href: string; title: string }) {
+  return (
+    <Button asChild className="relative z-10 h-[52px]">
+      <Link href={href} aria-label={`Ver más de ${title}`}>
+        Ver más
+      </Link>
+    </Button>
+  );
+}
 
 /**
  * Actividad del conjunto (A2, A5, A13): foto + insignias + título 18/24 + lugar + cupos + botón de 52.
- * El botón cambia según el estado: Inscribirme · Inscripción confirmada · Lista de espera · En lista de espera.
+ * El botón siempre es "Ver más"; inscribirse o unirse a la lista de espera se hace en el detalle.
  */
-export function ActivityListCard({ activity, onJoinWaitlist }: ActivityCardProps) {
+export function ActivityListCard({ activity }: { activity: CommunityActivity }) {
   const { enrolled, waitlist } = useAgendaState();
   const href = `/agenda/${activity.id}`;
   const isEnrolled = enrolled.includes(activity.id);
   const waitPosition = waitlist[activity.id];
-  // Ya empezó o terminó: no se puede inscribir ni entrar a la lista de espera.
   const status = activityStatus(activity);
-  const started = status !== "upcoming";
   // El cupo propio cuenta en el resumen una vez inscrito (como en el detalle).
   const view = isEnrolled ? { ...activity, enrolled: Math.min(activity.capacity, activity.enrolled + 1) } : activity;
   const full = spotsLeft(view) === 0;
@@ -91,34 +106,21 @@ export function ActivityListCard({ activity, onJoinWaitlist }: ActivityCardProps
           {capacityLabel(view)}
         </p>
 
-        <div className="relative z-10 w-full">
-          {isEnrolled ? (
-            <Button asChild variant="secondary" className="h-[52px]">
-              <Link href={href}>
-                <Check className="text-success" strokeWidth={2.5} aria-hidden />
-                Inscripción confirmada
-              </Link>
-            </Button>
-          ) : started ? null : waitPosition ? (
-            <Button variant="secondary" disabled className="h-[52px] disabled:opacity-100">
-              En lista de espera · puesto {waitPosition}
-            </Button>
-          ) : full ? (
-            <Button variant="secondary" className="h-[52px]" onClick={() => onJoinWaitlist(activity)}>
-              Unirme a la lista de espera
-            </Button>
-          ) : (
-            <Button asChild className="h-[52px]">
-              <Link href={`${href}?inscribirme=1`}>Inscribirme</Link>
-            </Button>
-          )}
+        {isEnrolled ? (
+          <MyStatus>Inscripción confirmada</MyStatus>
+        ) : waitPosition ? (
+          <MyStatus tone="neutral">En lista de espera · puesto {waitPosition}</MyStatus>
+        ) : null}
+
+        <div className="w-full pt-1">
+          <SeeMoreButton href={href} title={activity.title} />
         </div>
       </div>
     </article>
   );
 }
 
-/** Evento del barrio (A13): cabecera ilustrada, insignia naranja, quién lo compartió, botón Voy. */
+/** Evento del barrio (A13): cabecera ilustrada, insignia naranja, quién lo compartió y "Ver más" (Voy está en el detalle). */
 export function NeighborhoodEventCard({ event }: { event: NeighborhoodEvent }) {
   const { going } = useAgendaState();
   const href = `/agenda/${event.id}`;
@@ -151,19 +153,10 @@ export function NeighborhoodEventCard({ event }: { event: NeighborhoodEvent }) {
           <Users className="size-4 shrink-0" strokeWidth={2} aria-hidden />
           {event.goingCountLabel}
         </p>
-        <div className="relative z-10 w-full">
-          {isGoing ? (
-            <Button asChild variant="secondary" className="h-[52px]">
-              <Link href={href}>
-                <Check className="text-success" strokeWidth={2.5} aria-hidden />
-                Vas a ir
-              </Link>
-            </Button>
-          ) : status === "ended" ? null : (
-            <Button asChild className="h-[52px]">
-              <Link href={`${href}?voy=1`}>Voy</Link>
-            </Button>
-          )}
+        {isGoing && <MyStatus>Vas a ir</MyStatus>}
+
+        <div className="w-full pt-1">
+          <SeeMoreButton href={href} title={event.title} />
         </div>
       </div>
     </article>
