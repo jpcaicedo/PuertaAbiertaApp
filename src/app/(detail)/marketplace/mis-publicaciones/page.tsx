@@ -12,7 +12,7 @@ export default async function MisPublicacionesPage() {
   const mine = await getMyListings();
   const content = (
     <Screen className="pb-24">
-      <ScreenHeader backHref="/directorio/marketplace" />
+      <ScreenHeader backHref="/marketplace" />
       <ScreenBody gap={12} className="pt-3">
         <div className="flex flex-col gap-1 pb-3">
           <ScreenTitle>Mis publicaciones</ScreenTitle>

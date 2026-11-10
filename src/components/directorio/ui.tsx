@@ -72,33 +72,6 @@ export function Rating({ rating, label }: { rating: number; label: string }) {
   );
 }
 
-/* ───────────────────────── Control segmentado ───────────────────────── */
-
-/** Vecinos y servicios / Marketplace: fondo #E9ECF0, padding 4, radio 14; activo blanco radio 10. */
-export function DirectoryTabs({ active }: { active: "servicios" | "marketplace" }) {
-  const tabs = [
-    { id: "servicios", label: "Vecinos y servicios", href: "/directorio" },
-    { id: "marketplace", label: "Marketplace", href: "/directorio/marketplace" },
-  ] as const;
-  return (
-    <nav aria-label="Secciones del directorio" className="flex w-full gap-1 rounded-chip bg-segment p-1">
-      {tabs.map((t) => (
-        <Link
-          key={t.id}
-          href={t.href}
-          aria-current={active === t.id ? "page" : undefined}
-          className={cn(
-            "flex flex-1 items-center justify-center rounded-[10px] px-2 py-[9px] text-caption font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand",
-            active === t.id ? "bg-surface text-text shadow-[0_1px_2px_rgb(0_0_0/0.06)]" : "text-text-secondary hover:text-text",
-          )}
-        >
-          {t.label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
 /* ───────────────────────── Chips ───────────────────────── */
 
 /** Chip de filtro de una sola selección (radio 16, padding 6/12, 12/16 SemiBold). */

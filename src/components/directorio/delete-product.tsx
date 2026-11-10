@@ -26,7 +26,7 @@ export function DeleteProductButton({ dbId, title }: { dbId: string; title: stri
       const result = await deleteProduct(dbId);
       if (!result.ok) return setError("No pudimos eliminarla. Inténtalo de nuevo.");
       setOpen(false);
-      router.replace("/directorio/marketplace");
+      router.replace("/marketplace");
     });
   }
 

@@ -26,7 +26,7 @@ export default async function ProductoPage({ params }: Props) {
 
   return (
     <Screen>
-      <DetailHero backHref="/directorio/marketplace" image={p.image} imageAlt={p.title} photoHeight={360} />
+      <DetailHero backHref="/marketplace" image={p.image} imageAlt={p.title} photoHeight={360} />
       <DetailSheet>
         <p className="text-display font-bold text-text">
           {formatPrice(p.price)}
@@ -68,13 +68,13 @@ export default async function ProductoPage({ params }: Props) {
         {isMine ? (
           <>
             <Button asChild variant="secondary" className="flex-1 rounded-[80px]">
-              <Link href="/directorio/mis-publicaciones">Es tu publicación · Ver mis publicaciones</Link>
+              <Link href="/marketplace/mis-publicaciones">Es tu publicación · Ver mis publicaciones</Link>
             </Button>
             {p.dbId && <DeleteProductButton dbId={p.dbId} title={p.title} />}
           </>
         ) : (
           <Button asChild className="rounded-[80px]">
-            <Link href={`/directorio/marketplace/${p.id}/mensaje`}>Escribir al vendedor</Link>
+            <Link href={`/marketplace/${p.id}/mensaje`}>Escribir al vendedor</Link>
           </Button>
         )}
       </ActionBar>

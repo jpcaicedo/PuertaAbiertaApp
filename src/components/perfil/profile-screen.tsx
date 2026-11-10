@@ -103,7 +103,7 @@ export function ProfileScreen({ unreadMessages = 0 }: { unreadMessages?: number 
             subtitle="Daños, peticiones y quejas a la administración"
           />
           <NavRow
-            href="/directorio/mis-publicaciones"
+            href="/marketplace/mis-publicaciones"
             icon={Tag}
             title="Mis publicaciones"
             subtitle={

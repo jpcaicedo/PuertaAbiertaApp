@@ -8,8 +8,8 @@ export default function ProductoPublicadoPage() {
     <Confirmation
       title="Tu producto ya está en el Marketplace"
       description="Te avisamos cuando un vecino te escriba. Cuando lo vendas, márcalo como vendido en Mis publicaciones."
-      primary={{ label: "Volver al Marketplace", href: "/directorio/marketplace" }}
-      secondary={{ label: "Ver mis publicaciones", href: "/directorio/mis-publicaciones" }}
+      primary={{ label: "Volver al Marketplace", href: "/marketplace" }}
+      secondary={{ label: "Ver mis publicaciones", href: "/marketplace/mis-publicaciones" }}
     />
   );
 }

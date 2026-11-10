@@ -8,16 +8,18 @@ import { HomeHeader } from "@/components/app/home-header";
 import { Screen } from "@/components/app/screen";
 import { reviewsLabel, searchServices, services, type NeighborService, type ServiceCategory } from "@/lib/directory/data";
 import { useCurrentUser } from "@/components/app/current-user";
-import { Avatar, DirectoryTabs, FilterChips, Rating, SearchBar, SearchLink, VerifiedMark } from "./ui";
+import { Avatar, FilterChips, Rating, SearchBar, SearchLink, VerifiedMark } from "./ui";
 
-/* ───────────────────────── Cabecera común D1 / D8 ───────────────────────── */
+/* ───────────────────────── Cabecera común: Directorio y Marketplace ───────────────────────── */
 
 export function DirectoryHeader({
-  active,
+  title = "Directorio",
+  description,
   action,
   children,
 }: {
-  active: "servicios" | "marketplace";
+  title?: string;
+  description?: string;
   action: { label: string; href: string };
   children: React.ReactNode;
 }) {
@@ -28,7 +30,7 @@ export function DirectoryHeader({
       </div>
       <div className="flex flex-col items-start gap-3.5 px-5 pt-3">
         <div className="flex w-full items-center justify-between">
-          <h1 className="text-title font-bold text-text">Directorio</h1>
+          <h1 className="text-title font-bold text-text">{title}</h1>
           <Link
             href={action.href}
             className="inline-flex items-center gap-1.5 rounded-[20px] bg-brand py-2 pr-3.5 pl-3 text-caption font-semibold text-white transition-colors hover:bg-brand-hover active:scale-[0.97] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
@@ -37,7 +39,7 @@ export function DirectoryHeader({
             {action.label}
           </Link>
         </div>
-        <DirectoryTabs active={active} />
+        {description && <p className="-mt-2 text-caption text-text-secondary">{description}</p>}
         {children}
       </div>
     </Screen>
@@ -58,7 +60,10 @@ export function ServicesScreen({ services: all = services }: { services?: Neighb
   const list = all.filter((s) => filter === "todos" || s.category === filter);
 
   return (
-    <DirectoryHeader active="servicios" action={{ label: "Ofrecer servicio", href: "/directorio/ofrecer" }}>
+    <DirectoryHeader
+      description="Vecinos que ofrecen servicios en el conjunto."
+      action={{ label: "Ofrecer servicio", href: "/directorio/ofrecer" }}
+    >
       <SearchLink href="/directorio/buscar" label="Buscar vecinos o servicios" />
       <FilterChips label="Tipo de servicio" options={serviceFilters} value={filter} onChange={setFilter} />
       {list.length ? (

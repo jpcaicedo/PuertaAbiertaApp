@@ -107,7 +107,7 @@ export const notifications: AppNotification[] = [
     body: "Respóndeles desde Mis publicaciones.",
     when: "Hace 3 h",
     unread: true,
-    href: "/directorio/mis-publicaciones",
+    href: "/marketplace/mis-publicaciones",
   },
   {
     id: "camila-cuentos",

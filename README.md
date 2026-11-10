@@ -85,12 +85,12 @@ y son de ejemplo: hay que reemplazarlas por las reales. En Vercel, agrega la mis
 | `/directorio/[id]` | D3 · Perfil del vecino |
 | `/directorio/[id]/mensaje` | D4 · Mensaje a Camila |
 | `/directorio/ofrecer` → `/vista-previa` → `/listo` | D5 · Publicar servicio · D6 · Vista previa · D7 · Servicio publicado |
-| `/directorio/marketplace` | D8 · Marketplace |
-| `/directorio/marketplace/[id]` | D9 · Detalle del producto · D14 · Reportar (hoja) |
-| `/directorio/marketplace/[id]/mensaje` | D4b · Mensaje al vendedor |
-| `/directorio/marketplace/[id]/reportado` | D15 · Reporte enviado |
-| `/directorio/marketplace/vender` → `/listo` | D10 · Vender un producto · D11 · Producto publicado |
-| `/directorio/mis-publicaciones` | D12 · Mis publicaciones · D13 · ¿Ya lo vendiste? · D12b · Producto vendido |
+| `/marketplace` | D8 · Marketplace (sección propia, con acceso desde Inicio; las rutas viejas `/directorio/marketplace…` redirigen aquí) |
+| `/marketplace/[id]` | D9 · Detalle del producto · D14 · Reportar (hoja) |
+| `/marketplace/[id]/mensaje` | D4b · Mensaje al vendedor |
+| `/marketplace/[id]/reportado` | D15 · Reporte enviado |
+| `/marketplace/vender` → `/listo` | D10 · Vender un producto · D11 · Producto publicado |
+| `/marketplace/mis-publicaciones` | D12 · Mis publicaciones · D13 · ¿Ya lo vendiste? · D12b · Producto vendido |
 
 ## Rutas (flujo 6)
 
