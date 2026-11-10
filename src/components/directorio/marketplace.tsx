@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Armchair, Baby, ChevronRight, Flag, MessageCircle, Package, Shirt, ShoppingCart, Tag, Trash2 } from "lucide-react";
+import { Armchair, Baby, ChevronRight, Flag, MessageCircle, Package, Search, Shirt, ShoppingCart, Tag, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BottomSheet,
@@ -14,14 +14,14 @@ import {
   BottomSheetTitle,
 } from "@/components/ui/bottom-sheet";
 import { formatTimeAgo } from "@/lib/mock-data";
-import { formatPrice, productCategories, products, reportReasons, type Product, type ProductCategory } from "@/lib/directory/data";
+import { formatPrice, productCategories, products, reportReasons, searchProducts, type Product, type ProductCategory } from "@/lib/directory/data";
 import { directoryActions, useDirectoryState, type MyListing } from "@/lib/directory/store";
 import { reportProduct } from "@/lib/directory/actions";
 import { cn } from "@/lib/utils";
 import { DirectoryHeader } from "./services";
-import { FilterChips, SearchLink, Toast } from "./ui";
+import { FilterChips, Toast } from "./ui";
 
-/* ───────────────────────── D8 · Marketplace ───────────────────────── */
+/* ───────────────────────── D8 · Marketplace (sección propia, se entra desde Inicio) ───────────────────────── */
 
 const productFilters: { id: "todos" | ProductCategory; label: string }[] = [
   { id: "todos", label: "Todos" },
@@ -30,18 +30,46 @@ const productFilters: { id: "todos" | ProductCategory; label: string }[] = [
 
 export function MarketplaceScreen({ products: all = products }: { products?: Product[] }) {
   const [filter, setFilter] = React.useState<"todos" | ProductCategory>("todos");
+  const [query, setQuery] = React.useState("");
   const { listings } = useDirectoryState();
   const active = listings.filter((l) => !l.soldAt && !l.removed).length;
   const sold = listings.filter((l) => l.soldAt).length;
-  const list = all.filter((p) => filter === "todos" || p.category === filter);
+  const list = searchProducts(query, all).filter((p) => filter === "todos" || p.category === filter);
 
   return (
-    <DirectoryHeader active="marketplace" action={{ label: "Vender", href: "/directorio/marketplace/vender" }}>
-      <SearchLink href="/directorio/buscar" label="Buscar productos" />
+    <DirectoryHeader
+      title="Marketplace"
+      description="Compra y vende entre vecinos del conjunto."
+      action={{ label: "Vender", href: "/marketplace/vender" }}
+    >
+      <div
+        role="search"
+        className="flex h-[46px] w-full items-center gap-2.5 rounded-chip border border-step-pending bg-surface px-3.5 transition-colors focus-within:border-brand"
+      >
+        <Search className="size-[18px] shrink-0 text-ink" strokeWidth={2} aria-hidden />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar productos"
+          aria-label="Buscar productos"
+          className="h-full min-w-0 flex-1 bg-transparent text-body text-text outline-none placeholder:text-text-tertiary [&::-webkit-search-cancel-button]:hidden"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label="Borrar búsqueda"
+            className="-mr-1.5 grid size-8 shrink-0 cursor-pointer place-items-center rounded-full text-text-tertiary hover:text-text outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          >
+            <X className="size-4" strokeWidth={2} aria-hidden />
+          </button>
+        )}
+      </div>
 
       {/* Mis publicaciones: blanca, radio 16, padding 14, tile 40 */}
       <Link
-        href="/directorio/mis-publicaciones"
+        href="/marketplace/mis-publicaciones"
         className="flex w-full items-center gap-3 rounded-card border border-option-border bg-surface p-3.5 transition-shadow hover:shadow-card outline-none focus-visible:ring-2 focus-visible:ring-brand"
       >
         <span aria-hidden className="inline-flex shrink-0 rounded-field bg-brand-soft p-2.5 text-brand">
@@ -60,7 +88,9 @@ export function MarketplaceScreen({ products: all = products }: { products?: Pro
 
       {list.length === 0 && (
         <p className="w-full py-10 text-center text-body text-text-secondary">
-          No hay productos en esta categoría. ¿Te sobra algo en casa? Publícalo con «Vender».
+          {query.trim()
+            ? `Nadie está vendiendo "${query.trim()}" por ahora. ¿Te sobra algo en casa? Publícalo con «Vender».`
+            : "No hay productos en esta categoría. ¿Te sobra algo en casa? Publícalo con «Vender»."}
         </p>
       )}
       <ul className="grid w-full grid-cols-2 gap-x-2 gap-y-4">
@@ -77,7 +107,7 @@ export function MarketplaceScreen({ products: all = products }: { products?: Pro
 /** Producto: foto cuadrada radio 16, precio 17/24 Bold, título 13/18, vendedor 12/16. */
 function ProductCard({ product: p }: { product: Product }) {
   return (
-    <Link href={`/directorio/marketplace/${p.id}`} className="group flex flex-col gap-1 rounded-card outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-bg">
+    <Link href={`/marketplace/${p.id}`} className="group flex flex-col gap-1 rounded-card outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-4 focus-visible:ring-offset-bg">
       <span className="relative mb-1.5 block aspect-square w-full overflow-hidden rounded-card bg-note">
         <Image src={p.image} alt="" fill sizes="(max-width: 430px) 50vw, 200px" className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
       </span>
@@ -165,7 +195,7 @@ export function ReportButton({ productId, dbId }: { productId: string; dbId?: st
             onClick={() => {
               const done = () => {
                 setOpen(false);
-                router.push(`/directorio/marketplace/${productId}/reportado`);
+                router.push(`/marketplace/${productId}/reportado`);
               };
               if (!dbId) return done();
               setError(undefined);
@@ -221,7 +251,7 @@ export function MyListingsScreen() {
               </p>
               <div className="flex w-full gap-2">
                 <Button asChild variant="secondary" className="w-auto flex-1">
-                  <Link href="/directorio/marketplace/vender">Editar</Link>
+                  <Link href="/marketplace/vender">Editar</Link>
                 </Button>
                 <Button className="w-auto flex-[1.7]" onClick={() => setConfirming(l)}>
                   Marcar como vendido
@@ -234,7 +264,7 @@ export function MyListingsScreen() {
           <div className="flex w-full flex-col gap-3 rounded-[18px] border-[1.5px] border-dashed border-option-border p-4">
             <p className="text-label text-text-secondary">No tienes nada a la venta. ¿Te sobra algo en casa? Un vecino puede necesitarlo.</p>
             <Button asChild variant="secondary">
-              <Link href="/directorio/marketplace/vender">Vender algo</Link>
+              <Link href="/marketplace/vender">Vender algo</Link>
             </Button>
           </div>
         )}

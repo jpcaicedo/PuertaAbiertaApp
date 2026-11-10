@@ -8,7 +8,7 @@ export default function ReporteEnviadoPage() {
     <Confirmation
       title="Gracias por avisar"
       description="La administración revisará la publicación en las próximas 24 horas. Si no cumple las normas de la comunidad, la retirará."
-      primary={{ label: "Volver al Marketplace", href: "/directorio/marketplace" }}
+      primary={{ label: "Volver al Marketplace", href: "/marketplace" }}
     />
   );
 }

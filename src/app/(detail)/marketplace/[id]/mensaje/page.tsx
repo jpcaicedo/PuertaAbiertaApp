@@ -11,12 +11,12 @@ type Props = { params: Promise<{ id: string }> };
 export default async function MensajeVendedorPage({ params }: Props) {
   const [p, me] = await Promise.all([getProductBySlug((await params).id), getCurrentUser()]);
   if (!p) notFound();
-  if (p.ownerId && p.ownerId === me?.id) redirect("/directorio/mis-publicaciones");
+  if (p.ownerId && p.ownerId === me?.id) redirect("/marketplace/mis-publicaciones");
   // Vendedor con cuenta: conversación real (queda ligada al producto). Vendedor de ejemplo: se guarda, no responde.
   const conversation = await getConversation(p.ownerId ?? `demo-p-${p.id}`);
   return (
     <ChatScreen
-      backHref={`/directorio/marketplace/${p.id}`}
+      backHref={`/marketplace/${p.id}`}
       name={p.seller.name}
       avatar={p.seller.avatar}
       subtitle={`Vende: ${p.title} · Torre ${p.seller.tower}`}

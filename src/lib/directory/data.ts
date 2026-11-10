@@ -152,6 +152,12 @@ export function searchServices(query: string, list: NeighborService[] = services
   return list.filter((s) => [s.title, s.neighbor.name, s.description, ...s.keywords].some((t) => fold(t).includes(q)));
 }
 
+export function searchProducts(query: string, list: Product[]) {
+  const q = fold(query);
+  if (!q) return list;
+  return list.filter((p) => [p.title, p.description, p.seller.name, p.conditionLabel].some((t) => fold(t).includes(q)));
+}
+
 export function initials(name: string) {
   return name
     .split(/\s+/)

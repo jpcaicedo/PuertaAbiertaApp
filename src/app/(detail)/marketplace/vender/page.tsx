@@ -67,7 +67,7 @@ export default function VenderProductoPage() {
     if (!condition) found.condition = "Elige el estado.";
     setErrors(found);
     if (Object.keys(found).length) return;
-    const done = () => router.push("/directorio/marketplace/vender/listo");
+    const done = () => router.push("/marketplace/vender/listo");
     if (!isSupabaseConfigured) {
       // Modo demo: queda en el navegador.
       directoryActions.addListing({ title: title.trim(), price: Number(price), category: category as ProductCategory, condition: condition as ProductCondition });
@@ -95,7 +95,7 @@ export default function VenderProductoPage() {
 
   return (
     <Screen>
-      <ScreenHeader backHref="/directorio/marketplace" />
+      <ScreenHeader backHref="/marketplace" />
       <form id="vender" onSubmit={submit} noValidate className="flex flex-1 flex-col">
         <ScreenBody gap={16} className="pt-3">
           <ScreenTitle>Vender un producto</ScreenTitle>

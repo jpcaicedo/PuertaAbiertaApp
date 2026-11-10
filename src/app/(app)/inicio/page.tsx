@@ -4,6 +4,8 @@ import { HomeHeader } from "@/components/app/home-header";
 import { ActivityCard, NoticeCard, PlaceCard } from "@/components/app/home-cards";
 import { SectionHeader } from "@/components/app/section-header";
 import { Screen } from "@/components/app/screen";
+import { MarketplacePreview } from "@/components/app/marketplace-preview";
+import { getProducts } from "@/lib/directory/queries";
 import { getNextActivity } from "@/lib/agenda/queries";
 import { recommendedPlace } from "@/lib/mock-data";
 import { getNotices } from "@/lib/notices/queries";
@@ -14,7 +16,7 @@ export const dynamic = "force-dynamic";
 /** I1 · Inicio (Figma 484:2249) */
 export default async function InicioPage() {
   const now = new Date();
-  const [[latestNotice], nextActivity] = await Promise.all([getNotices(), getNextActivity()]);
+  const [[latestNotice], nextActivity, products] = await Promise.all([getNotices(), getNextActivity(), getProducts()]);
 
   return (
     <Screen className="pb-tabbar">
@@ -48,6 +50,8 @@ export default async function InicioPage() {
           </span>
           <ChevronRight className="size-5 shrink-0 text-text-tertiary" strokeWidth={2} aria-hidden />
         </Link>
+
+        <MarketplacePreview products={products} />
 
         <section aria-labelledby="actividad" className="mt-[26px] flex w-full flex-col gap-[26px]">
           <SectionHeader id="actividad" title="Próxima actividad" action={{ label: "Ver agenda", href: "/agenda" }} />
