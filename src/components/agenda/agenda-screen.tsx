@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { HomeHeader } from "@/components/app/home-header";
 import { Screen } from "@/components/app/screen";
 import { type AgendaItem, type Category, type CommunityActivity, type TimeOfDay } from "@/lib/agenda/data";
-import { parseDay, spotsLeft, timeOfDay, weekdayLong, weekdayShort, weekOf } from "@/lib/agenda/format";
+import { spotsLeft, timeOfDay, weekdayLong } from "@/lib/agenda/format";
 import { activityStatus } from "@/lib/agenda/today";
 import { cn } from "@/lib/utils";
 import { ActivityListCard, NeighborhoodEventCard } from "./cards";
 import { FilterSheet, ProposeSheet, WaitlistSheets, type AgendaFilters } from "./sheets";
+import { WeekStrip } from "./week-strip";
 
-type Props = { day: string; filters: AgendaFilters; items: AgendaItem[] };
+type Props = { day: string; today: string; filters: AgendaFilters; items: AgendaItem[] };
 
 /** Atajos de categoría visibles en la pantalla (el resto está en Filtrar). */
 const quickCategories: { id: Category; label: string }[] = [
@@ -40,14 +41,13 @@ function toQuery(day: string, f: AgendaFilters) {
 }
 
 /** A1 · Agenda (484:2381) · A2b · Día sin actividades (484:2533) · y las hojas A2, A5, A5b y A13. */
-export function AgendaScreen({ day, filters, items }: Props) {
+export function AgendaScreen({ day, today, filters, items }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [proposeOpen, setProposeOpen] = React.useState(false);
   const [waitlistFor, setWaitlistFor] = React.useState<CommunityActivity | null>(null);
 
-  const week = weekOf(day);
   // Las que ya terminaron van al final del día; el resto, por hora de inicio.
   const ended = (i: AgendaItem) => (activityStatus(i) === "ended" ? 1 : 0);
   const dayItems = items
@@ -80,30 +80,8 @@ export function AgendaScreen({ day, filters, items }: Props) {
           </button>
         </div>
 
-        {/* Semana */}
-        <nav aria-label="Días de la semana" className="flex w-full justify-between">
-          {week.map((d) => {
-            const selected = d === day;
-            const hasItems = items.some((i) => i.date === d);
-            return (
-              <Link
-                key={d}
-                href={href(d)}
-                scroll={false}
-                aria-current={selected ? "date" : undefined}
-                aria-label={`${weekdayLong(d)} ${parseDay(d).getDate()}${hasItems ? ", con actividades" : ""}`}
-                className={cn(
-                  "flex h-[66px] w-[46px] flex-col items-center gap-0.5 rounded-chip py-2 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand",
-                  selected ? "bg-brand text-white" : "bg-surface text-text hover:bg-brand-soft/50",
-                )}
-              >
-                <span className={cn("text-overline font-medium", !selected && "text-text-tertiary")}>{weekdayShort(d)}</span>
-                <span className="text-heading font-semibold">{parseDay(d).getDate()}</span>
-                <span aria-hidden className={cn("size-[5px] rounded-full", hasItems ? (selected ? "bg-white" : "bg-brand") : "bg-transparent")} />
-              </Link>
-            );
-          })}
-        </nav>
+        {/* Semana: se desliza para ver los días siguientes */}
+        <WeekStrip day={day} today={today} hasItems={(d) => items.some((i) => i.date === d)} href={(d) => href(d)} />
 
         {/* Categorías rápidas + filtro */}
         <div className="flex items-center gap-2">

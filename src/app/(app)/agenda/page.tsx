@@ -15,7 +15,8 @@ const list = <T extends string>(raw: string | undefined, allowed: readonly T[]) 
 /** A1 · Agenda. Día y filtros viven en la URL para poder compartir o volver atrás. */
 export default async function AgendaPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const day = isDay(sp.dia) ? sp.dia! : agendaToday();
+  const today = agendaToday();
+  const day = isDay(sp.dia) ? sp.dia! : today;
   const filters = {
     categories: list<Category>(sp.cat, categories.map((c) => c.id)),
     times: list<TimeOfDay>(sp.horario, timesOfDay.map((t) => t.id)),
@@ -24,10 +25,10 @@ export default async function AgendaPage({ searchParams }: Props) {
 
   const data = await getAgenda();
   // Modo demo: datos de ejemplo y estado en el navegador.
-  if (!data) return <AgendaScreen day={day} filters={filters} items={agendaItems} />;
+  if (!data) return <AgendaScreen day={day} today={today} filters={filters} items={agendaItems} />;
   return (
     <AgendaStateProvider value={data.mine}>
-      <AgendaScreen day={day} filters={filters} items={data.items} />
+      <AgendaScreen day={day} today={today} filters={filters} items={data.items} />
     </AgendaStateProvider>
   );
 }
