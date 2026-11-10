@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Calendar as CalendarIcon, ChevronDown, type LucideIcon } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronDown, CircleAlert, Clock, type LucideIcon } from "lucide-react";
 import { boxBase, boxError } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { formatLongDate, formatTime } from "@/lib/agenda/format";
@@ -85,48 +85,89 @@ export function DateField({
   );
 }
 
+/** Suma una hora a "HH:MM" (sin pasar de las 23:59). */
+function plusOneHour(t: string) {
+  const [h, m] = t.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return "";
+  return h >= 23 ? "23:59" : `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+/**
+ * Hora de inicio y hora de fin, cada una en su propio campo con su etiqueta (lado a lado).
+ * Al elegir el inicio, si el fin está vacío se propone una hora después (se puede cambiar).
+ */
 export function TimeRangeField({
   id,
   start,
   end,
   onChange,
   invalid,
-  icon,
-  prefix,
+  error,
+  legend = "Hora",
+  hint,
 }: {
   id: string;
   start: string;
   end: string;
   onChange: (range: { start: string; end: string }) => void;
-  invalid?: boolean;
-  icon: LucideIcon;
-  /** Texto antes de la hora, p. ej. "Hoy," en A11. */
-  prefix?: string;
+  /** Qué campo marcar en rojo. */
+  invalid?: "start" | "end" | "both";
+  error?: string;
+  /** Título del grupo, p. ej. "Hora" o "Hoy". */
+  legend?: string;
+  hint?: string;
 }) {
+  const errorId = `${id}-error`;
+  const hintId = `${id}-hint`;
+  const describedBy = error ? errorId : hint ? hintId : undefined;
+  const fields = [
+    { key: "start" as const, label: "Hora de inicio", value: start, placeholder: "Elige hora" },
+    { key: "end" as const, label: "Hora de fin", value: end, placeholder: "Elige hora" },
+  ];
+
   return (
-    <div id={id} className={cn(boxBase, "h-[52px]", invalid && boxError)}>
-      <FieldIcon icon={icon} />
-      <span className="flex min-w-0 flex-1 items-center gap-1 text-body text-text">
-        {prefix && <span>{prefix}</span>}
-        <NativePicker
-          type="time"
-          value={start}
-          onChange={(v) => onChange({ start: v, end })}
-          label="Hora de inicio"
-          placeholder="Inicio"
-          format={formatTime}
-        />
-        <span aria-hidden>a</span>
-        <NativePicker
-          type="time"
-          value={end}
-          onChange={(v) => onChange({ start, end: v })}
-          label="Hora de fin"
-          placeholder="Fin"
-          format={formatTime}
-        />
-      </span>
-    </div>
+    <fieldset id={id} className="flex w-full min-w-0 flex-col gap-1.5">
+      <legend className="sr-only">{legend}</legend>
+      <div className="grid w-full grid-cols-2 gap-3">
+        {fields.map((f) => {
+          const bad = invalid === "both" || invalid === f.key;
+          return (
+            <div key={f.key} className="flex min-w-0 flex-col gap-1.5">
+              <span id={`${id}-${f.key}-label`} className="text-caption font-semibold text-text">
+                {f.label}
+              </span>
+              <div className={cn(boxBase, "h-[52px] gap-2 px-3.5 focus-within:border-brand", bad && boxError)}>
+                <FieldIcon icon={Clock} />
+                <NativePicker
+                  type="time"
+                  value={f.value}
+                  onChange={(v) =>
+                    f.key === "start"
+                      ? onChange({ start: v, end: end || (v ? plusOneHour(v) : "") })
+                      : onChange({ start, end: v })
+                  }
+                  label={`${f.label}${legend !== "Hora" ? ` (${legend.toLowerCase()})` : ""}`}
+                  placeholder={f.placeholder}
+                  format={formatTime}
+                  className="flex-1"
+                  aria-describedby={describedBy}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {error ? (
+        <p id={errorId} role="alert" className="flex w-full items-start gap-1.5 text-caption text-error">
+          <CircleAlert className="mt-px size-4 shrink-0" strokeWidth={2} aria-hidden />
+          <span>{error}</span>
+        </p>
+      ) : hint ? (
+        <p id={hintId} className="w-full text-caption text-text-secondary">
+          {hint}
+        </p>
+      ) : null}
+    </fieldset>
   );
 }
 
