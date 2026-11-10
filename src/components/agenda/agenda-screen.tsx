@@ -7,12 +7,12 @@ import { Calendar, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HomeHeader } from "@/components/app/home-header";
 import { Screen } from "@/components/app/screen";
-import { type AgendaItem, type Category, type CommunityActivity, type TimeOfDay } from "@/lib/agenda/data";
+import { type AgendaItem, type Category, type TimeOfDay } from "@/lib/agenda/data";
 import { spotsLeft, timeOfDay, weekdayLong } from "@/lib/agenda/format";
 import { activityStatus } from "@/lib/agenda/today";
 import { cn } from "@/lib/utils";
 import { ActivityListCard, NeighborhoodEventCard } from "./cards";
-import { FilterSheet, ProposeSheet, WaitlistSheets, type AgendaFilters } from "./sheets";
+import { FilterSheet, ProposeSheet, type AgendaFilters } from "./sheets";
 import { WeekStrip } from "./week-strip";
 
 type Props = { day: string; today: string; filters: AgendaFilters; items: AgendaItem[] };
@@ -46,7 +46,6 @@ export function AgendaScreen({ day, today, filters, items }: Props) {
   const pathname = usePathname();
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [proposeOpen, setProposeOpen] = React.useState(false);
-  const [waitlistFor, setWaitlistFor] = React.useState<CommunityActivity | null>(null);
 
   // Las que ya terminaron van al final del día; el resto, por hora de inicio.
   const ended = (i: AgendaItem) => (activityStatus(i) === "ended" ? 1 : 0);
@@ -110,7 +109,7 @@ export function AgendaScreen({ day, today, filters, items }: Props) {
             {visible.map((item) => (
               <li key={item.id}>
                 {item.kind === "actividad" ? (
-                  <ActivityListCard activity={item} onJoinWaitlist={setWaitlistFor} />
+                  <ActivityListCard activity={item} />
                 ) : (
                   <NeighborhoodEventCard event={item} />
                 )}
@@ -148,7 +147,6 @@ export function AgendaScreen({ day, today, filters, items }: Props) {
         onApply={(f) => router.replace(href(day, f), { scroll: false })}
       />
       <ProposeSheet open={proposeOpen} onOpenChange={setProposeOpen} />
-      <WaitlistSheets activity={waitlistFor} onClose={() => setWaitlistFor(null)} />
     </Screen>
   );
 }

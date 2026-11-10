@@ -80,7 +80,9 @@ export function ActivityCard({ activity }: { activity: Activity }) {
 
       <div className="w-full px-4 pt-[5px] pb-4">
         <Button asChild className="relative z-10">
-          <Link href={`${href}?inscribirme=1`}>Inscribirme</Link>
+          <Link href={href} aria-label={`Ver más de ${activity.title}`}>
+            Ver más
+          </Link>
         </Button>
       </div>
     </article>
