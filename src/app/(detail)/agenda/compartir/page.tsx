@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Info, Link as LinkIcon, MapPin, Tag } from "lucide-react";
+import { Info, Link as LinkIcon, MapPin, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { FormField } from "@/components/app/form-field";
@@ -28,7 +28,8 @@ export default function CompartirEventoPage() {
     const found: Errors = {};
     if (what.trim().length < 3) found.what = "Cuéntales qué es.";
     if (!where.trim()) found.where = "Indica dónde es.";
-    if (!time.start || !time.end) found.when = "Elige la hora de inicio y de fin.";
+    if (!time.start || !time.end) found.when = !time.start ? "Elige la hora de inicio." : "Elige la hora de fin.";
+    else if (time.end <= time.start) found.when = "La hora de fin debe ser después de la hora de inicio.";
     if (link && !/^https?:\/\/\S+\.\S+/.test(link)) found.link = "El enlace debe empezar por https://";
     setErrors(found);
     if (Object.keys(found).length) return;
@@ -52,11 +53,16 @@ export default function CompartirEventoPage() {
               <Input {...aria} value={where} onChange={(e) => setWhere(e.target.value)} placeholder="C. C. Mirador del Sur, piso 2" startAdornment={<FieldIcon icon={MapPin} />} />
             )}
           </FormField>
-          <FormField id="cuando" label="Cuándo" error={errors.when}>
-            {({ id, invalid }) => (
-              <TimeRangeField id={id} icon={Calendar} prefix="Hoy," start={time.start} end={time.end} onChange={setTime} invalid={invalid} />
-            )}
-          </FormField>
+          <TimeRangeField
+            id="cuando"
+            legend="Hoy"
+            hint="Es para algo que pasa hoy."
+            start={time.start}
+            end={time.end}
+            onChange={setTime}
+            invalid={errors.when ? (!time.start ? "start" : "end") : undefined}
+            error={errors.when}
+          />
           <FormField id="costo" label="Costo">
             {(aria) => <Input {...aria} value={cost} onChange={(e) => setCost(e.target.value)} placeholder="Gratis" startAdornment={<FieldIcon icon={Tag} />} />}
           </FormField>

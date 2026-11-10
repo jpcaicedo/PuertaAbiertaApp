@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Info, MapPin, Users } from "lucide-react";
+import { Info, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -14,7 +14,9 @@ import { commonAreas } from "@/lib/agenda/data";
 import { proposeActivity } from "@/lib/agenda/actions";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
-type Errors = Partial<Record<"name" | "date" | "time" | "capacity" | "place", string>>;
+type Errors = Partial<Record<"name" | "date" | "time" | "capacity" | "place", string>> & {
+  timeField?: "start" | "end" | "both";
+};
 
 /** A6 · Crear actividad (484:3111) → A7 (con zona común) o A8 (sin zona común). */
 export default function CrearActividadPage() {
@@ -36,8 +38,19 @@ export default function CrearActividadPage() {
     const found: Errors = {};
     if (name.trim().length < 3) found.name = "Ponle un nombre a tu actividad.";
     if (!date) found.date = "Elige la fecha.";
-    if (!time.start || !time.end) found.time = "Elige la hora de inicio y de fin.";
-    else if (time.end <= time.start) found.time = "La hora de fin debe ser después del inicio.";
+    if (!time.start && !time.end) {
+      found.time = "Elige la hora de inicio y la hora de fin.";
+      found.timeField = "both";
+    } else if (!time.start) {
+      found.time = "Elige la hora de inicio.";
+      found.timeField = "start";
+    } else if (!time.end) {
+      found.time = "Elige la hora de fin: ¿a qué hora termina la actividad?";
+      found.timeField = "end";
+    } else if (time.end <= time.start) {
+      found.time = "La hora de fin debe ser después de la hora de inicio.";
+      found.timeField = "end";
+    }
     if (!(Number(capacity) > 0)) found.capacity = "Indica cuántas personas pueden ir.";
     if (!usesArea && !freePlace.trim()) found.place = "Indica dónde se encuentran.";
     setErrors(found);
@@ -101,9 +114,17 @@ export default function CrearActividadPage() {
             {({ invalid, ...aria }) => <DateField {...aria} value={date} onChange={setDate} invalid={invalid} />}
           </FormField>
 
-          <FormField id="hora" label="Hora" error={errors.time}>
-            {({ id, invalid }) => <TimeRangeField id={id} icon={Clock} start={time.start} end={time.end} onChange={setTime} invalid={invalid} />}
-          </FormField>
+          <TimeRangeField
+            id="hora"
+            start={time.start}
+            end={time.end}
+            onChange={(t) => {
+              setTime(t);
+              if (errors.time) setErrors((x) => ({ ...x, time: undefined, timeField: undefined }));
+            }}
+            invalid={errors.timeField}
+            error={errors.time}
+          />
 
           <FormField id="cupos" label="Cupos" error={errors.capacity}>
             {(aria) => (
