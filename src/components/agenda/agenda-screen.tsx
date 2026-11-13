@@ -3,13 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Calendar, Plus, SlidersHorizontal } from "lucide-react";
+import { Calendar, CalendarCheck, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HomeHeader } from "@/components/app/home-header";
 import { Screen } from "@/components/app/screen";
 import { type AgendaItem, type Category, type TimeOfDay } from "@/lib/agenda/data";
 import { spotsLeft, timeOfDay, weekdayLong } from "@/lib/agenda/format";
 import { activityStatus } from "@/lib/agenda/today";
+import { setZonesOrigin } from "@/lib/zones/origin";
 import { cn } from "@/lib/utils";
 import { ActivityListCard, NeighborhoodEventCard } from "./cards";
 import { FilterSheet, ProposeSheet, type AgendaFilters } from "./sheets";
@@ -66,17 +67,27 @@ export function AgendaScreen({ day, today, filters, items }: Props) {
       </div>
 
       <div className="flex flex-col items-start gap-4 px-5 pt-3">
-        {/* Título + Proponer un plan */}
-        <div className="flex w-full items-center justify-between">
+        {/* Título + acciones: Proponer un plan · Reservar un espacio */}
+        <div className="flex w-full flex-col gap-3">
           <h1 className="text-title font-bold text-text">Agenda</h1>
-          <button
-            type="button"
-            onClick={() => setProposeOpen(true)}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-[20px] bg-brand py-2 pr-3.5 pl-3 text-caption font-semibold text-white transition-colors hover:bg-brand-hover active:scale-[0.97] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-          >
-            <Plus className="size-4" strokeWidth={2.25} aria-hidden />
-            Proponer un plan
-          </button>
+          <div className="grid w-full grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={() => setProposeOpen(true)}
+              className="inline-flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-[20px] bg-brand px-3 text-caption max-[359px]:px-2 max-[359px]:[&>svg]:hidden font-semibold whitespace-nowrap text-white transition-colors hover:bg-brand-hover active:scale-[0.97] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
+              <Plus className="size-4 shrink-0" strokeWidth={2.25} aria-hidden />
+              Proponer un plan
+            </button>
+            <Link
+              href="/zonas-comunes"
+              onClick={() => setZonesOrigin("agenda")}
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-[20px] border border-brand bg-surface px-3 text-caption max-[359px]:px-2 max-[359px]:[&>svg]:hidden font-semibold whitespace-nowrap text-brand transition-colors hover:bg-brand-soft/50 active:scale-[0.97] outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
+              <CalendarCheck className="size-4 shrink-0" strokeWidth={2.25} aria-hidden />
+              Reservar un espacio
+            </Link>
+          </div>
         </div>
 
         {/* Semana: se desliza para ver los días siguientes */}

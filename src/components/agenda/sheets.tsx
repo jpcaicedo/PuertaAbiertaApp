@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Bell, Calendar, CalendarCheck, ChevronRight, Clock, MapPin, ShieldCheck, Users, type LucideIcon } from "lucide-react";
+import { Bell, Calendar, ChevronRight, Clock, MapPin, ShieldCheck, Users, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   BottomSheet,
@@ -283,20 +283,6 @@ export function ProposeSheet({ open, onOpenChange }: { open: boolean; onOpenChan
             rule="Tus vecinos marcan «Voy» y ven quién va."
           />
         </div>
-
-        <Link
-          href="/zonas-comunes"
-          className="flex w-full items-center gap-3 rounded-card bg-surface-muted py-3.5 pr-4 pl-3.5 transition-colors hover:bg-brand-soft/50 outline-none focus-visible:ring-2 focus-visible:ring-brand"
-        >
-          <span aria-hidden className="inline-flex shrink-0 rounded-[10px] bg-surface p-2 text-brand">
-            <CalendarCheck className="size-5" strokeWidth={2} />
-          </span>
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="text-label text-text-tertiary">¿Solo quieres apartar un espacio?</span>
-            <span className="text-body font-semibold text-brand">Resérvalo en Zonas comunes</span>
-          </span>
-          <ChevronRight className="size-5 shrink-0 text-brand" strokeWidth={2} aria-hidden />
-        </Link>
 
         <BottomSheetClose asChild>
           <Button variant="link">Cancelar</Button>

@@ -1,14 +1,16 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { setZonesOrigin, useZonesOrigin } from "@/lib/zones/origin";
 import { Calendar, House, Map, User, Users, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Tab = { href: string; label: string; icon: LucideIcon; /** Rutas que también activan la pestaña. */ match: string[] };
 
 const tabs: Tab[] = [
-  { href: "/inicio", label: "Inicio", icon: House, match: ["/inicio", "/avisos", "/zonas-comunes", "/admin", "/marketplace"] },
+  { href: "/inicio", label: "Inicio", icon: House, match: ["/inicio", "/avisos", "/admin", "/marketplace"] },
   { href: "/mapa", label: "Mapa", icon: Map, match: ["/mapa"] },
   { href: "/agenda", label: "Agenda", icon: Calendar, match: ["/agenda"] },
   { href: "/directorio", label: "Directorio", icon: Users, match: ["/directorio"] },
@@ -24,6 +26,14 @@ const tabs: Tab[] = [
  */
 export function TabBar() {
   const pathname = usePathname();
+  const zonesOrigin = useZonesOrigin();
+
+  // Zonas comunes cuelga de la pestaña desde la que se entró (Inicio o Agenda).
+  React.useEffect(() => {
+    if (pathname === "/agenda") setZonesOrigin("agenda");
+    else if (pathname === "/inicio" || pathname === "/avisos") setZonesOrigin("inicio");
+  }, [pathname]);
+  const inZones = pathname === "/zonas-comunes" || pathname.startsWith("/zonas-comunes/");
 
   return (
     <nav
@@ -32,7 +42,9 @@ export function TabBar() {
     >
       <ul className="pointer-events-auto mx-auto flex h-16 max-w-[398px] items-center justify-between rounded-[32px] bg-surface px-2.5 shadow-nav dark:ring-1 dark:ring-white/10">
         {tabs.map(({ href, label, icon: Icon, match }) => {
-          const active = match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
+          const active =
+            match.some((m) => pathname === m || pathname.startsWith(`${m}/`)) ||
+            (inZones && href === (zonesOrigin === "agenda" ? "/agenda" : "/inicio"));
           return (
             <li key={href}>
               <Link
